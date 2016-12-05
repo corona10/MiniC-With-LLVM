@@ -6,6 +6,7 @@ class MiniCListener(ParseTreeListener):
 
     # Enter a parse tree produced by MiniCParser#program.
     def enterProgram(self, ctx):
+	print ctx.getText()
         pass
 
     # Exit a parse tree produced by MiniCParser#program.
