@@ -20,13 +20,15 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#program.
     def exitProgram(self, ctx):
-        ast = ProgramAST()
-        strmod = ast.codeGenerate()
+        programAst = ProgramAST()
+        for child in ctx.getChildren():
+            child_ast = self.prop[child]
+            programAst.asts.append(child_ast) 
+        strmod = programAst.codeGenerate()
         print "=== Generated IR code ===\n"
         print strmod
         llmod = llvm.parse_assembly(strmod)
-        print "=== Generated ASM code ===\n"
-        print llmod
+        llmod.verify()
 
 
     # Enter a parse tree produced by MiniCParser#decl.
@@ -35,8 +37,9 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#decl.
     def exitDecl(self, ctx):
-        pass
-
+        ast = self.prop[ctx.getChild(0)]
+        if ast is not None:
+           self.prop[ctx] = ast
 
     # Enter a parse tree produced by MiniCParser#var_decl.
     def enterVar_decl(self, ctx):
@@ -44,7 +47,7 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#var_decl.
     def exitVar_decl(self, ctx):
-        pass
+        self.prop[ctx] = None
 
 
     # Enter a parse tree produced by MiniCParser#type_spec.
@@ -53,7 +56,9 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#type_spec.
     def exitType_spec(self, ctx):
-        pass
+        type_spec = ctx.getChild(0).getText()
+        ast = TypeSpecAST(type_spec= type_spec)
+        self.prop[ctx] = ast
 
 
     # Enter a parse tree produced by MiniCParser#fun_decl.
@@ -62,7 +67,10 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#fun_decl.
     def exitFun_decl(self, ctx):
-        pass
+        ftype = self.prop[ctx.getChild(0)]
+        function_name = ctx.getChild(1).getText()
+        ast = FunctionAST(function_type= ftype, name=function_name, args_types = None)
+        self.prop[ctx] = ast
 
 
     # Enter a parse tree produced by MiniCParser#params.
