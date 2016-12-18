@@ -12,7 +12,7 @@ class MiniCListener(ParseTreeListener):
         llvm.initialize_native_target()
         llvm.initialize_native_asmprinter()
         self.prop={}
-        self.target_machine = llvm.Target.from_default_triple().create_target_machine()
+        self.tm = llvm.Target.from_default_triple().create_target_machine()
 
     # Enter a parse tree produced by MiniCParser#program.
     def enterProgram(self, ctx):
@@ -29,6 +29,10 @@ class MiniCListener(ParseTreeListener):
         print strmod
         llmod = llvm.parse_assembly(strmod)
         llmod.verify()
+        with llvm.create_mcjit_compiler(llmod, self.tm) as ee:
+            ee.finalize_object()
+            print "=== Generated assembly code ===\n"
+            print(self.tm.emit_assembly(llmod))
 
 
     # Enter a parse tree produced by MiniCParser#decl.
