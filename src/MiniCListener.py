@@ -77,13 +77,14 @@ class MiniCListener(ParseTreeListener):
     def exitFun_decl(self, ctx):
         ftype = self.prop[ctx.getChild(0)]
         function_name = ctx.getChild(1).getText()
+        compound = self.prop[ctx.getChild(5)]
         if len(ctx.getChild(3).getText()) > 0:
            args_ast = self.prop[ctx.getChild(3)]
            args, args_names = args_ast.codeGenerate() 
-           ast = FunctionAST(function_type= ftype, name=function_name, args_types = args, args_names = args_names)
+           ast = FunctionAST(function_type= ftype, name=function_name, args_types = args, args_names = args_names, compound_stmt = compound)
            self.prop[ctx] = ast
         else:
-           ast = FunctionAST(function_type= ftype, name=function_name, args_types = None)
+           ast = FunctionAST(function_type= ftype, name=function_name, args_types = None, compound_stmt = compound)
            self.prop[ctx] = ast
 
 
@@ -133,7 +134,9 @@ class MiniCListener(ParseTreeListener):
         #    else:
         #        stmt += self.prop[ctx.return_stmt]
         #self.prop[ctx]=stmt
-        pass
+        if ctx.getChild(0) in self.prop:
+           ast = self.prop[ctx.getChild(0)]
+           self.prop[ctx] = ast
 
 
     # Enter a parse tree produced by MiniCParser#expr_stmt.
@@ -167,8 +170,12 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#compound_stmt.
     def exitCompound_stmt(self, ctx):
-        pass
-
+        compoundAST = CompoundAST(name="entry")
+        self.prop[ctx] = compoundAST
+        for stmt in ctx.getChildren():
+           if stmt in self.prop:
+              print stmt.getText()
+              compoundAST.pushAST(self.prop[stmt])
 
     # Enter a parse tree produced by MiniCParser#local_decl.
     def enterLocal_decl(self, ctx):
@@ -194,8 +201,11 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#return_stmt.
     def exitReturn_stmt(self, ctx):
-        pass
-
+        if ctx.getChildCount() == 2:
+            rtn_ast = ReturnAST()
+        else:
+            rtn_ast = ReturnAST(value="3")
+        self.prop[ctx] = rtn_ast
 
     # Enter a parse tree produced by MiniCParser#expr.
     def enterExpr(self, ctx):

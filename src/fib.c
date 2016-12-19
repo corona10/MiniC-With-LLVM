@@ -1,11 +1,8 @@
 int x;
-int foo(int n) {
-	if (n < 3){
-	    return 1;
-	    }
-	return foo(n - 1) + foo(n - 2);
+void foo(int n) {
+  n = n + 1;
+  return;
 }
-
 int main()
 {
    int x;

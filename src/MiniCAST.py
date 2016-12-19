@@ -33,6 +33,7 @@ class FunctionAST(MiniCBaseAST):
       self.name = kwargs['name']
       self.function_type = kwargs['function_type']
       self.args_types = kwargs['args_types']
+      self.compound_stmt = kwargs['compound_stmt']
       if 'args_names' in kwargs:
          self.args_names = kwargs['args_names']
       else:
@@ -49,7 +50,8 @@ class FunctionAST(MiniCBaseAST):
       if self.args_names is not None:
          for idx in range(len(self.args_names)):
             function.args[idx].name = self.args_names[idx]
-
+      self.compound_stmt.function = function
+      self.compound_stmt.codeGenerate()
       return module
 
 class ParamsAST(MiniCBaseAST):
@@ -87,6 +89,34 @@ class TypeSpecAST(MiniCBaseAST):
       if self.type == "void":
          return ll.VoidType()
 
+class CompoundAST(MiniCBaseAST):
+   def __init__(self, **kwargs):
+      self.name = kwargs['name']
+      self.ast_list = []
+
+   def codeGenerate(self):
+      builder = ll.IRBuilder(self.function.append_basic_block(self.name))
+      for ast in self.ast_list:
+         ast.codeGenerate(builder)
+
+   def pushAST(self, ast):
+      self.ast_list.append(ast)
+
+class ReturnAST(MiniCBaseAST):
+   def __init__(self, **kwargs):
+      if "value" in kwargs:
+         self.value = kwargs['value']
+      else:
+         self.value = None
+   
+   def codeGenerate(self, builder):
+      if self.value == None:
+         builder.ret_void()
+      else:
+         print "test void"
+         const_1 = ll.Constant(ll.IntType(32),1);
+         builder.ret(const_1)
+   
 class ProgramAST(MiniCBaseAST):
    def __init__(self):
       self.asts = []
