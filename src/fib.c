@@ -1,3 +1,4 @@
+int x;
 int foo(int n) {
 	if (n < 3){
 	    return 1;

@@ -8,6 +8,26 @@ class MiniCBaseAST(object):
    def codeGenerate(self):
       pass
 
+class GloabalAST(MiniCBaseAST):
+   def __init__(self,**kwargs):
+      self.name = kargs['name']
+      self.type = kwargs['type']
+      self.is_array = False
+      if 'is_array' in kwargs:
+          self.is_array = kwargs['is_array']
+      if self.is_array == True:
+          self.value = kwargs['value']
+      else:
+          self.value = kwargs['value']
+
+   def codeGenerate(self, module):
+       ty = self.type.codeGenerate()
+       ll.GloabalVariable(module,ty,self.name)
+       return module  
+       #gv = ll.GloabalVariable(module,typ,self.name)
+       #return gv
+      
+
 class FunctionAST(MiniCBaseAST):
    def __init__(self, **kwargs):
       self.name = kwargs['name']
