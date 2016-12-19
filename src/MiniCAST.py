@@ -10,7 +10,7 @@ class MiniCBaseAST(object):
 
 class GloabalAST(MiniCBaseAST):
    def __init__(self,**kwargs):
-      self.name = kargs['name']
+      self.name = kwargs['name']
       self.type = kwargs['type']
       self.is_array = False
       if 'is_array' in kwargs:
@@ -22,7 +22,7 @@ class GloabalAST(MiniCBaseAST):
 
    def codeGenerate(self, module):
        ty = self.type.codeGenerate()
-       ll.GloabalVariable(module,ty,self.name)
+       ll.GlobalVariable(module,ty,self.name)
        return module  
        #gv = ll.GloabalVariable(module,typ,self.name)
        #return gv
@@ -74,7 +74,6 @@ class ParamAST(MiniCBaseAST):
          self.is_array = kwargs['is_array']
 
    def codeGenerate(self):
-      print self.param_type
       if self.param_type == 'int':
          return ll.IntType(32), self.name
 

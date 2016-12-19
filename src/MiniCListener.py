@@ -55,7 +55,7 @@ class MiniCListener(ParseTreeListener):
         name = ctx.getChild(1).getText()
         #value = ctx.getChild(3).getText()
         type_ast = self.prop[ty]
-        global_ast = GloabalAST(name=name,type=ty,is_array=False,value=0)
+        global_ast = GloabalAST(name=name,type=type_ast,is_array=False,value=0)
         self.prop[ctx] = global_ast
 
     # Enter a parse tree produced by MiniCParser#type_spec.
