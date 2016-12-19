@@ -13,6 +13,11 @@ class FunctionAST(MiniCBaseAST):
       self.name = kwargs['name']
       self.function_type = kwargs['function_type']
       self.args_types = kwargs['args_types']
+      if 'args_names' in kwargs:
+         self.args_names = kwargs['args_names']
+      else:
+         self.args_names = None
+
       if self.args_types is None: 
          self.args_types = []
       self.bb_lists = []
@@ -21,6 +26,10 @@ class FunctionAST(MiniCBaseAST):
       rtn_type = self.function_type.codeGenerate()
       ftype = ll.FunctionType(rtn_type, self.args_types)
       function = ll.Function(module, ftype, self.name)
+      if self.args_names is not None:
+         for idx in range(len(self.args_names)):
+            function.args[idx].name = self.args_names[idx]
+
       return module
 
 class ParamsAST(MiniCBaseAST):
@@ -29,9 +38,13 @@ class ParamsAST(MiniCBaseAST):
 
    def codeGenerate(self):
       llvm_asts = []
+      param_names = []
       for param in self.param_asts:
-         llvm_asts.append(param.codeGenerate())
-      return llvm_asts
+         args_type, args_name = param.codeGenerate()
+         llvm_asts.append(args_type)
+         param_names.append(args_name)
+      return llvm_asts, param_names
+
 class ParamAST(MiniCBaseAST):
    def __init__(self, **kwargs):
       self.param_type = kwargs['type']
@@ -43,7 +56,7 @@ class ParamAST(MiniCBaseAST):
    def codeGenerate(self):
       print self.param_type
       if self.param_type == 'int':
-         return ll.IntType(32)
+         return ll.IntType(32), self.name
 
 class TypeSpecAST(MiniCBaseAST):
    def __init__(self, **kwargs):

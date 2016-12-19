@@ -41,7 +41,6 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#decl.
     def exitDecl(self, ctx):
-        print ctx.getChild(0).getText()
         ast = self.prop[ctx.getChild(0)]
         if ast is not None:
            self.prop[ctx] = ast
@@ -75,10 +74,9 @@ class MiniCListener(ParseTreeListener):
         ftype = self.prop[ctx.getChild(0)]
         function_name = ctx.getChild(1).getText()
         if len(ctx.getChild(3).getText()) > 0:
-           print "*" + ctx.getChild(3).getText()
            args_ast = self.prop[ctx.getChild(3)]
-           args = args_ast.codeGenerate()  
-           ast = FunctionAST(function_type= ftype, name=function_name, args_types = args)
+           args, args_names = args_ast.codeGenerate() 
+           ast = FunctionAST(function_type= ftype, name=function_name, args_types = args, args_names = args_names)
            self.prop[ctx] = ast
         else:
            ast = FunctionAST(function_type= ftype, name=function_name, args_types = None)
@@ -109,7 +107,6 @@ class MiniCListener(ParseTreeListener):
         param_name = ctx.getChild(1).getText()
         ast = ParamAST(type=param_type, name = param_name)
         self.prop[ctx] = ast
-        print ast.codeGenerate()
 
 
     # Enter a parse tree produced by MiniCParser#stmt.
