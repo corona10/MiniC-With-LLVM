@@ -22,17 +22,20 @@ class GlobalAST(MiniCBaseAST):
           self.is_array = kwargs['is_array']
       if 'value' in kwargs:
           self.value = kwargs['value']
+      if self.is_array == True:
+          self.size = kwargs['size']
 
    def codeGenerate(self, module):
        if self.is_array == False:
            ty = self.type.codeGenerate()
            gv = ll.GlobalVariable(module,ty,self.name)
            if self.value != None:
-               gv.initializer = int32(self.value);
+               gv.initializer = int32(self.value)
+       else:
+           ty = ll.ArrayType(ll.IntType(32), self.size)
+           gv = ll.GlobalVariable(module, ty, self.name)
+           
        return module  
-       #gv = ll.GloabalVariable(module,typ,self.name)
-       #return gv
-      
 
 class FunctionAST(MiniCBaseAST):
    def __init__(self, **kwargs):

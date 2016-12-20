@@ -54,7 +54,6 @@ class MiniCListener(ParseTreeListener):
         if ctx.getChildCount() == 3:
             ty = ctx.getChild(0)
             name = ctx.getChild(1).getText()
-            #value = ctx.getChild(3).getText()
             type_ast = self.prop[ty]
             global_ast = GlobalAST(name=name,type=type_ast,is_array=False,value=0)
         if ctx.getChildCount() == 5:
@@ -63,6 +62,14 @@ class MiniCListener(ParseTreeListener):
             type_ast = self.prop[ty]
             value = int(ctx.getChild(3).getText())
             global_ast = GlobalAST(name=name, type=type_ast, is_array=False, value = value)
+
+        if ctx.getChildCount() == 6:
+            ty = ctx.getChild(0)
+            name = ctx.getChild(1).getText()
+            type_ast = self.prop[ty]
+            size = int(ctx.getChild(3).getText())
+            global_ast = GlobalAST(name=name, type=type_ast, is_array=True, size = size)
+
         self.prop[ctx] = global_ast
 
     # Enter a parse tree produced by MiniCParser#type_spec.

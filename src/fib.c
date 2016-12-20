@@ -1,4 +1,5 @@
 int x = 4;
+int y[10];
 void foo(int n) {
   n = n + 1;
   return;
