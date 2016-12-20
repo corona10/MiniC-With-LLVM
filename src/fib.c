@@ -1,4 +1,4 @@
-int x;
+int x = 4;
 void foo(int n) {
   n = n + 1;
   return;
