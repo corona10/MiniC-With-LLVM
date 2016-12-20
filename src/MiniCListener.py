@@ -12,6 +12,9 @@ class MiniCListener(ParseTreeListener):
         llvm.initialize_native_target()
         llvm.initialize_native_asmprinter()
         self.prop={}
+        self.function_name_table = {}
+        self.function_symbol_table = {}
+
         self.tm = llvm.Target.from_default_triple().create_target_machine()
 
     # Enter a parse tree produced by MiniCParser#program.
@@ -87,7 +90,10 @@ class MiniCListener(ParseTreeListener):
 
     # Enter a parse tree produced by MiniCParser#fun_decl.
     def enterFun_decl(self, ctx):
-        pass
+        func_name = ctx.getChild(1).getText()
+        self.function_symbol_table[func_name] = {}
+        self.function_name_table[ctx.getChild(3)] = func_name
+        self.function_name_table[ctx.getChild(5)] = func_name
 
     # Exit a parse tree produced by MiniCParser#fun_decl.
     def exitFun_decl(self, ctx):
@@ -135,7 +141,10 @@ class MiniCListener(ParseTreeListener):
 
     # Enter a parse tree produced by MiniCParser#stmt.
     def enterStmt(self, ctx):
-        pass
+        func_name = self.function_name_table[ctx]
+        if ctx.getChildCount() > 0:
+            for pt in ctx.children:
+                self.function_name_table[pt] = func_name
 
     # Exit a parse tree produced by MiniCParser#stmt.
     def exitStmt(self, ctx):
@@ -162,7 +171,11 @@ class MiniCListener(ParseTreeListener):
 
     # Enter a parse tree produced by MiniCParser#expr_stmt.
     def enterExpr_stmt(self, ctx):
-        pass
+        func_name = self.function_name_table[ctx]
+        if ctx.getChildCount() > 0:
+            for pt in ctx.children:
+                self.function_name_table[pt] = func_name
+
 
     # Exit a parse tree produced by MiniCParser#expr_stmt.
     def exitExpr_stmt(self, ctx):  
@@ -175,7 +188,10 @@ class MiniCListener(ParseTreeListener):
 
     # Enter a parse tree produced by MiniCParser#while_stmt.
     def enterWhile_stmt(self, ctx):
-        pass
+        func_name = self.function_name_table[ctx]
+        if ctx.getChildCount() > 0:
+            for pt in ctx.children:
+                self.function_name_table[pt] = func_name
 
     # Exit a parse tree produced by MiniCParser#while_stmt.
     def exitWhile_stmt(self, ctx):
@@ -184,7 +200,10 @@ class MiniCListener(ParseTreeListener):
 
     # Enter a parse tree produced by MiniCParser#compound_stmt.
     def enterCompound_stmt(self, ctx):
-        pass
+        func_name = self.function_name_table[ctx]
+        if ctx.getChildCount() > 0:
+            for pt in ctx.children:
+                self.function_name_table[pt] = func_name
 
     # Exit a parse tree produced by MiniCParser#compound_stmt.
     def exitCompound_stmt(self, ctx):
@@ -206,12 +225,29 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#local_decl.
     def exitLocal_decl(self, ctx):
-        pass
+        if ctx.getChildCount() == 3:
+            ty = self.prop[ctx.getChild(0)]
+            name = ctx.getChild(1).getText()
+            ast = LocalDeclAST(type = ty, name = name)
+        if ctx.getChildCount() == 5:
+            ty = self.prop[ctx.getChild(0)]
+            name = ctx.getChild(1).getText()
+            value = int(ctx.getChild(3).getText())
+            ast = LocalDeclAST(type=ty, name = name, value = value)
+        if ctx.getChildCount() == 6:
+            ty = self.prop[ctx.getChild(0)]
+            name = ctx.getChild(1).getText()
+            size = int(ctx.getChild(3).getText())
+            ast = LocalDeclAST(type = ty, name= name, is_array= True, size = size)
+        self.prop[ctx] = ast
 
 
     # Enter a parse tree produced by MiniCParser#if_stmt.
     def enterIf_stmt(self, ctx):
-        pass
+        func_name = self.function_name_table[ctx]
+        if ctx.getChildCount() > 0:
+            for pt in ctx.children:
+                self.function_name_table[pt] = func_name
 
     # Exit a parse tree produced by MiniCParser#if_stmt.
     def exitIf_stmt(self, ctx):
@@ -220,7 +256,11 @@ class MiniCListener(ParseTreeListener):
 
     # Enter a parse tree produced by MiniCParser#return_stmt.
     def enterReturn_stmt(self, ctx):
-        pass
+        func_name = self.function_name_table[ctx]
+        if ctx.getChildCount() > 0:
+            for pt in ctx.children:
+                self.function_name_table[pt] = func_name
+
 
     # Exit a parse tree produced by MiniCParser#return_stmt.
     def exitReturn_stmt(self, ctx):
@@ -232,7 +272,10 @@ class MiniCListener(ParseTreeListener):
 
     # Enter a parse tree produced by MiniCParser#expr.
     def enterExpr(self, ctx):
-        pass
+        func_name = self.function_name_table[ctx]
+        if ctx.getChildCount() > 0:
+            for pt in ctx.children:
+                self.function_name_table[pt] = func_name
 
     # Exit a parse tree produced by MiniCParser#expr.
     def exitExpr(self, ctx):
@@ -309,7 +352,10 @@ class MiniCListener(ParseTreeListener):
 
     # Enter a parse tree produced by MiniCParser#args.
     def enterArgs(self, ctx):
-        pass
+        func_name = self.function_name_table[ctx]
+        if ctx.getChildCount() > 0:
+            for pt in ctx.children:
+                self.function_name_table[pt] = func_name
 
     # Exit a parse tree produced by MiniCParser#args.
     def exitArgs(self, ctx):

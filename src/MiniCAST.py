@@ -37,6 +37,30 @@ class GlobalAST(MiniCBaseAST):
            
        return module  
 
+class LocalDeclAST(MiniCBaseAST):
+   def __init__(self,**kwargs):
+      self.name = kwargs['name']
+      self.type = kwargs['type']
+      self.is_array = False
+      self.value = None
+      if 'is_array' in kwargs:
+          self.is_array = kwargs['is_array']
+      if 'value' in kwargs:
+          self.value = kwargs['value']
+      if self.is_array == True:
+          self.size = kwargs['size']
+
+   def codeGenerate(self, builder):
+       if self.is_array == False:
+           ty = self.type.codeGenerate()
+           decl = builder.alloca(ll.IntType(32), name=self.name)
+           if self.value != None:
+               builder.store(ll.Constant(decl.type.pointee, self.value), decl)
+       else:
+           ty = ll.ArrayType(ll.IntType(32), self.size)
+           decl = builder.alloca(ty, name=self.name)
+       return builder
+
 class FunctionAST(MiniCBaseAST):
    def __init__(self, **kwargs):
       self.name = kwargs['name']
