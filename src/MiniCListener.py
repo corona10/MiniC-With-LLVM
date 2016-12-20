@@ -205,7 +205,21 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#local_decl.
     def exitLocal_decl(self, ctx):
-        pass
+        if ctx.getChildCount() == 3:
+            ty = self.prop[ctx.getChild(0)]
+            name = ctx.getChild(1).getText()
+            ast = LocalDeclAST(type = ty, name = name)
+        if ctx.getChildCount() == 5:
+            ty = self.prop[ctx.getChild(0)]
+            name = ctx.getChild(1).getText()
+            value = int(ctx.getChild(3).getText())
+            ast = LocalDeclAST(type=ty, name = name, value = value)
+        if ctx.getChildCount() == 6:
+            ty = self.prop[ctx.getChild(0)]
+            name = ctx.getChild(1).getText()
+            size = int(ident = ctx.getChild(3).getText())
+            ast = LocalDeclAST(type = ty, name= name, is_array= True, size = size)
+        self.prop[ctx] = ast
 
 
     # Enter a parse tree produced by MiniCParser#if_stmt.
