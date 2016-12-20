@@ -217,7 +217,7 @@ class MiniCListener(ParseTreeListener):
         if ctx.getChildCount() == 6:
             ty = self.prop[ctx.getChild(0)]
             name = ctx.getChild(1).getText()
-            size = int(ident = ctx.getChild(3).getText())
+            size = int(ctx.getChild(3).getText())
             ast = LocalDeclAST(type = ty, name= name, is_array= True, size = size)
         self.prop[ctx] = ast
 

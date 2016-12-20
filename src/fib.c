@@ -8,6 +8,7 @@ int main()
 {
    int x;
    int y = 3;
+   int z[100];
    x = 5;
    foo(x);
    return 0;

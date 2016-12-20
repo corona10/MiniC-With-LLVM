@@ -57,7 +57,8 @@ class LocalDeclAST(MiniCBaseAST):
            if self.value != None:
                builder.store(ll.Constant(decl.type.pointee, self.value), decl)
        else:
-           pass
+           ty = ll.ArrayType(ll.IntType(32), self.size)
+           decl = builder.alloca(ty, name=self.name)
        return builder
 
 class FunctionAST(MiniCBaseAST):
