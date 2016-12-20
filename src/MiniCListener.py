@@ -53,11 +53,25 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#var_decl.
     def exitVar_decl(self, ctx):
-        ty = ctx.getChild(0)
-        name = ctx.getChild(1).getText()
-        #value = ctx.getChild(3).getText()
-        type_ast = self.prop[ty]
-        global_ast = GloabalAST(name=name,type=type_ast,is_array=False,value=0)
+        if ctx.getChildCount() == 3:
+            ty = ctx.getChild(0)
+            name = ctx.getChild(1).getText()
+            type_ast = self.prop[ty]
+            global_ast = GlobalAST(name=name,type=type_ast,is_array=False,value=0)
+        if ctx.getChildCount() == 5:
+            ty = ctx.getChild(0)
+            name = ctx.getChild(1).getText()
+            type_ast = self.prop[ty]
+            value = int(ctx.getChild(3).getText())
+            global_ast = GlobalAST(name=name, type=type_ast, is_array=False, value = value)
+
+        if ctx.getChildCount() == 6:
+            ty = ctx.getChild(0)
+            name = ctx.getChild(1).getText()
+            type_ast = self.prop[ty]
+            size = int(ctx.getChild(3).getText())
+            global_ast = GlobalAST(name=name, type=type_ast, is_array=True, size = size)
+
         self.prop[ctx] = global_ast
 
     # Enter a parse tree produced by MiniCParser#type_spec.
@@ -128,8 +142,8 @@ class MiniCListener(ParseTreeListener):
         #stmt = ""
         #if ctx.getChildCount > 0:
         #    if ctx.expr_stmt() is not None:
-                #print ctx.expr_stmt().getText()
-        #        ast = self.prop[ctx.expr_stmt()]
+        #       print ctx.expr_stmt().getText()
+        #       ast = self.prop[ctx.expr_stmt()]
         #    elif ctx.compound_stmt() is not None:
         #        ast = self.prop[ctx.compound_stmt()]
         #    elif ctx.if_stmt() is not None:
@@ -139,7 +153,6 @@ class MiniCListener(ParseTreeListener):
         #    else:
         #        ast = self.prop[ctx.return_stmt()]
         
-        print ctx.getText()
         if ctx.getChild(0) in self.prop:
            print ctx.getChild(0).getText()
            ast = self.prop[ctx.getChild(0)]
@@ -223,21 +236,21 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#expr.
     def exitExpr(self, ctx):
-        #expr=""
-        #print ctx.getText()
         if ctx.getChildCount() > 0:
             if ctx.getChildCount() == 1:
-                ast=ctx.getChild(0)
-                #print ast
+                if ctx.getChild(0) == ctx.LITERAL():
+                   ast=ctx.getChild(0).getText()
+                   print 'LITERAL!'
+                elif ctx.getChild(0) == ctx.IDENT():
+                   ast=ctx.getChild(0).getText()
+                   print 'IDENT!'
             elif ctx.getChildCount() == 2:
                 op = ctx.getChild(0).getText()
                 s1=self.prop[ctx.expr(0)]
                 ast= UnaryAST(op=op,s1=s1)
             elif ctx.getChildCount() == 3:
                 if ctx.getChild(0).getText() == "(":
-                    expr+=ctx.getChild(0).getText()
-                    expr+=self.prop[ctx.expr(0)]
-                    expr+=ctx.getChild(2).getText()
+                    expr=self.prop[ctx.expr(0)]
                     ast = expr
                     #print expr
                 elif ctx.getChild(1).getText() == "=":
@@ -249,6 +262,7 @@ class MiniCListener(ParseTreeListener):
                     kwargs['op'] = op
                     kwargs['s2'] = s2
                     ast = AssignAST(kwargs)
+                    print ast, "@@@"
                 else: #Binary
                     s1 = self.prop[ctx.expr(0)]
                     op = ctx.getChild(1).getText()

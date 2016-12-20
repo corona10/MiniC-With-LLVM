@@ -1,6 +1,10 @@
 import llvmlite.ir as ll
 import llvmlite.binding as llvm
 
+
+def int32(value):
+   return ll.Constant(ll.IntType(32),value)
+
 class MiniCBaseAST(object):
    def __init__(self):
       pass
@@ -8,25 +12,30 @@ class MiniCBaseAST(object):
    def codeGenerate(self):
       pass
 
-class GloabalAST(MiniCBaseAST):
+class GlobalAST(MiniCBaseAST):
    def __init__(self,**kwargs):
       self.name = kwargs['name']
       self.type = kwargs['type']
       self.is_array = False
+      self.value = None
       if 'is_array' in kwargs:
           self.is_array = kwargs['is_array']
+      if 'value' in kwargs:
+          self.value = kwargs['value']
       if self.is_array == True:
-          self.value = kwargs['value']
-      else:
-          self.value = kwargs['value']
+          self.size = kwargs['size']
 
    def codeGenerate(self, module):
-       ty = self.type.codeGenerate()
-       ll.GlobalVariable(module,ty,self.name)
+       if self.is_array == False:
+           ty = self.type.codeGenerate()
+           gv = ll.GlobalVariable(module,ty,self.name)
+           if self.value != None:
+               gv.initializer = int32(self.value)
+       else:
+           ty = ll.ArrayType(ll.IntType(32), self.size)
+           gv = ll.GlobalVariable(module, ty, self.name)
+           
        return module  
-       #gv = ll.GloabalVariable(module,typ,self.name)
-       #return gv
-      
 
 class FunctionAST(MiniCBaseAST):
    def __init__(self, **kwargs):
@@ -122,7 +131,7 @@ class ReturnAST(MiniCBaseAST):
       if self.value == None:
          builder.ret_void()
       else:
-         const_1 = ll.Constant(ll.IntType(32),1);
+         const_1 = ll.Constant(ll.IntType(32),0);
          builder.ret(const_1)
    
 class ProgramAST(MiniCBaseAST):
@@ -131,6 +140,7 @@ class ProgramAST(MiniCBaseAST):
 
    def codeGenerate(self):
       module = ll.Module()
+      module.triple = llvm.get_default_triple()
       for ast in self.asts:
          module = ast.codeGenerate(module)
       strmod = str(module)

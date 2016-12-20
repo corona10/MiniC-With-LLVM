@@ -14,9 +14,6 @@ def main(argv):
     listner = MiniCListener()
     walker = ParseTreeWalker()
     walker.walk(listner, tree)
-    
-    
-    
 
 if __name__ == '__main__':
     main(sys.argv)
