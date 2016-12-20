@@ -22,7 +22,9 @@ class MiniCListener(ParseTreeListener):
     def exitProgram(self, ctx):
         programAst = ProgramAST()
         for child in ctx.getChildren():
+            print child.getText()
             child_ast = self.prop[child]
+            print child_ast
             programAst.asts.append(child_ast) 
         strmod = programAst.codeGenerate()
         print "=== Generated IR code ===\n"
@@ -125,20 +127,23 @@ class MiniCListener(ParseTreeListener):
     def exitStmt(self, ctx):
         #stmt = ""
         #if ctx.getChildCount > 0:
-        #    if ctx.expr_stmt is not None:
-        #        print ctx.getText()
-        #        stmt += self.prop[ctx.expr_stmt()]
-        #    elif ctx.compound_stmt is not None:
-        #        stmt += self.prop[ctx.compound_stmt()]
-        #    elif ctx.if_stmt is not None:
-        #        stmt += self.prop[ctx.if_stmt]
-        #    elif ctx.while_stmt is not None:
-        #        stmt += self.prop[ctx.while_stmt]
+        #    if ctx.expr_stmt() is not None:
+                #print ctx.expr_stmt().getText()
+        #        ast = self.prop[ctx.expr_stmt()]
+        #    elif ctx.compound_stmt() is not None:
+        #        ast = self.prop[ctx.compound_stmt()]
+        #    elif ctx.if_stmt() is not None:
+        #        stmt += self.prop[ctx.if_stmt()]
+        #    elif ctx.while_stmt() is not None:
+        #        stmt += self.prop[ctx.while_stmt()]
         #    else:
-        #        stmt += self.prop[ctx.return_stmt]
-        #self.prop[ctx]=stmt
+        #        ast = self.prop[ctx.return_stmt()]
+        
+        print ctx.getText()
         if ctx.getChild(0) in self.prop:
+           print ctx.getChild(0).getText()
            ast = self.prop[ctx.getChild(0)]
+           print ast
            self.prop[ctx] = ast
 
 
@@ -147,14 +152,11 @@ class MiniCListener(ParseTreeListener):
         pass
 
     # Exit a parse tree produced by MiniCParser#expr_stmt.
-    def exitExpr_stmt(self, ctx):
-        #stmt = ""
-        #if ctx.getChildCount() == 2:
-        #    stmt +=" "
-        #    stmt +=self.prop[ctx.expr()]
-        #    stmt +=ctx.getChild(1).getText()
-        #    stmt +="\n"
-        #self.prop[ctx]=stmt
+    def exitExpr_stmt(self, ctx):  
+        ast=""
+        if ctx.getChildCount() == 2 :
+           ast = self.prop[ctx.expr()]
+           self.prop[ctx]=ast
         pass
 
 
@@ -225,45 +227,67 @@ class MiniCListener(ParseTreeListener):
         #print ctx.getText()
         if ctx.getChildCount() > 0:
             if ctx.getChildCount() == 1:
-                ast=ctx.getChild(0).getText()
+                ast=ctx.getChild(0)
+                #print ast
             elif ctx.getChildCount() == 2:
                 op = ctx.getChild(0).getText()
                 s1=self.prop[ctx.expr(0)]
-                ast= UniaryAST(op=op,s1=s1)
+                ast= UnaryAST(op=op,s1=s1)
             elif ctx.getChildCount() == 3:
                 if ctx.getChild(0).getText() == "(":
                     expr+=ctx.getChild(0).getText()
                     expr+=self.prop[ctx.expr(0)]
                     expr+=ctx.getChild(2).getText()
+                    ast = expr
+                    #print expr
                 elif ctx.getChild(1).getText() == "=":
                     s1=ctx.getChild(0).getText()
                     op=ctx.getChild(1).getText()
                     s2 =self.prop[ctx.expr(0)]
-                    ast = AissignAST(s1=s1,op=op,s2=s2)
+                    kwargs={}
+                    kwargs['s1'] = s1
+                    kwargs['op'] = op
+                    kwargs['s2'] = s2
+                    ast = AssignAST(kwargs)
                 else: #Binary
                     s1 = self.prop[ctx.expr(0)]
                     op = ctx.getChild(1).getText()
                     s2 = self.prop[ctx.expr(1)]
-                    ast = BinaryAST(s1=s1,op=op,s2=s2)
+                    kwargs={}
+                    kwargs['s1'] = s1
+                    kwargs['op'] = op
+                    kwargs['s2'] = s2
+                    #ast = BinaryAST(s1=s1,op=op,s2=s2)
+                    ast = BinaryAST(kwargs)
+                                 
             elif ctx.getChildCount() == 4:
                 #IDNET(args) or IDENT[args]
-                expr+=ctx.getChild(0).getText()
+                IDENT=ctx.getChild(0).getText()
                 if ctx.args() is not None:
-                    expr+=ctx.getChild(1).getText()
-                    expr+=self.prop[ctx.args()]
+                    f=ctx.getChild(1).getText()
+                    kwargs={}
+                    if f == "(":
+                        #print ctx.args().getText()
+                        args=self.prop[ctx.args()]
+                        kwargs['IDENT']=IDENT
+                        kwargs['args']=args
+                        ast = FunctionCallAST(kwargs) 
+                    if f == "[":
+                        expr = self.prop[ctx.args()]
+                        ast = ArrayAST(IDENT,expr) 
                 else:
-                    expr+=ctx.getChild(1).getText
-                    expr+=self.prop[ctx.expr(0)]
-                expr+=ctx.getChild(3).getText()
-                
+                    expr=self.prop[ctx.expr(0)]
+		    ast = ArrayAST(IDENT,expr) 
             else:
                 #IDENT[expr] = expr
                 IDENT = ctx.getChild(0).getText()
                 lb = ctx.getChild(1).getText()
-                loc = self.prop[ctx.expr(0)]
+                idx = self.prop[ctx.expr(0)]
                 rb = ctx.getChild(3).getText()
                 assign = ctx.getChild(4).getText()
                 value = self.prop[ctx.expr(1)]
+                if lb == "[" and assign == "=":
+                   ast = ArrayAssignAST(IDENT,idx,value)
                 
             self.prop[ctx]=ast
         pass
@@ -275,15 +299,16 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#args.
     def exitArgs(self, ctx):
-        #args=""
-        #if ctx.getChildCount() >=0:
-        #    for i in range(ctx.getChildCount()):
-        #        if i%2==0:
-        #            args+=self.prop[ctx.expr(i/2)]
-        #        else:
-        #            args+=ctx.getChild(i).getText()
-        #            args+=" "
-        #self.prop[ctx]=args
+        args=[]
+        if ctx.getChildCount() >=0:
+            for i in range(ctx.getChildCount()):
+                if i%2==0:
+                    args.append(self.prop[ctx.expr(i/2)])
+                else:
+                    continue
+                    #args+=ctx.getChild(i).getText()
+                    #args+=" "
+        self.prop[ctx]=args
         pass
 
 

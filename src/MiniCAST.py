@@ -100,7 +100,9 @@ class CompoundAST(MiniCBaseAST):
 
    def codeGenerate(self):
       builder = ll.IRBuilder(self.function.append_basic_block(self.name))
+      print self.ast_list
       for ast in self.ast_list:
+         print ast
          ast.codeGenerate(builder)
 
    def pushAST(self, ast):
@@ -144,7 +146,26 @@ def AssignAST(MiniCBaseAST):
       if self.op == "=":
          builder.store(builder.load(s1), builder.load(s2)) 
 
+def FunctionCallAST(MiniCBaseAST):
+
+   def __init__(self, **kwargs):
+      self.IDENT = kwargs['IDENT']
+      self.args = kwargs['args']
+
+   def codeGenerate(self,builder):
+      builder.call(self.IDENT, self.args)
+
+def ArrayAST(MiniCBaseAST):
+
+   def __init__(self, IDENT, index):
+      self.IDENT = IDENT 
+      self.index = index
+
+   def codeGenerate(self,builder):
+      builder.extract_value(self.IDENT, self.index)
+
 def BinaryAST(MiniCBaseAST):
+
    def __init__(self, **kwargs):
       self.s1 = kwargs['s1']
       self.op = kwargs['op']
@@ -152,10 +173,11 @@ def BinaryAST(MiniCBaseAST):
 
    def codeGenerate(self,builder):
       if self.op == "+":
-         builder.store(builder.add(builder.load(s1),builder.load(s2)),s1)
+         builder.store(builder.add(builder.load(s1),builder.load(s2)), builder.load(s1))
 
 
 def UnaryAST(MiniCBaseAST):
+
    def __init__(self,**kwargs):
       self.op = kwargs['op']
       self.s1= kwargs['s1']
@@ -170,14 +192,3 @@ def UnaryAST(MiniCBaseAST):
       elif self.op == '-':
          builder.neg(s1)
         
-
-def ExprAST(MiniCBaseAST):
-   def __init__(self):
-      self.asts = []
-
-   def codeGenerate(self, builder):
-      module = ll.Module()
-      for ast in self.asts:
-         module = ast.codeGenerate(module)
-      strmod = str(module)
-      return strmod;
