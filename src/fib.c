@@ -7,7 +7,6 @@ int main()
 {
    int x;
    x = 5;
-   x = foo(x);
-   write(x);
+   foo(x);
    return 0;
 }
