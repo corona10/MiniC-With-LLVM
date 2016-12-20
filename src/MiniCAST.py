@@ -54,6 +54,9 @@ class FunctionAST(MiniCBaseAST):
       self.compound_stmt.codeGenerate()
       return module
 
+   def pushAST(self, ast):
+      ast.codeGenerate()
+
 class ParamsAST(MiniCBaseAST):
    def __init__(self):
       self.param_asts = []
@@ -93,6 +96,7 @@ class CompoundAST(MiniCBaseAST):
    def __init__(self, **kwargs):
       self.name = kwargs['name']
       self.ast_list = []
+      self.hasRet = False
 
    def codeGenerate(self):
       builder = ll.IRBuilder(self.function.append_basic_block(self.name))
@@ -101,6 +105,9 @@ class CompoundAST(MiniCBaseAST):
 
    def pushAST(self, ast):
       self.ast_list.append(ast)
+
+   def sethasRet(self,hasRet):
+      self.hasRet = hasRet
 
 class ReturnAST(MiniCBaseAST):
    def __init__(self, **kwargs):

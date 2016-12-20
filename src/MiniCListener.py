@@ -82,10 +82,13 @@ class MiniCListener(ParseTreeListener):
            args_ast = self.prop[ctx.getChild(3)]
            args, args_names = args_ast.codeGenerate() 
            ast = FunctionAST(function_type= ftype, name=function_name, args_types = args, args_names = args_names, compound_stmt = compound)
-           self.prop[ctx] = ast
         else:
            ast = FunctionAST(function_type= ftype, name=function_name, args_types = None, compound_stmt = compound)
-           self.prop[ctx] = ast
+
+        if compound.hasRet == False:
+           r_ast = ReturnAST()
+           ast.pushAST(r_ast)
+        self.prop[ctx] = ast
 
 
     # Enter a parse tree produced by MiniCParser#params.
@@ -174,8 +177,13 @@ class MiniCListener(ParseTreeListener):
         self.prop[ctx] = compoundAST
         for stmt in ctx.getChildren():
            if stmt in self.prop:
-              print stmt.getText()
+              #print stmt.getText()
               compoundAST.pushAST(self.prop[stmt])
+        size = ctx.getChildCount()
+        ast = self.prop[ctx.getChild(size-2)]
+        if type(ast) == ReturnAST:
+            compoundAST.sethasRet(True)
+       
 
     # Enter a parse tree produced by MiniCParser#local_decl.
     def enterLocal_decl(self, ctx):
