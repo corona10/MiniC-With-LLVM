@@ -129,7 +129,7 @@ class ReturnAST(MiniCBaseAST):
       if self.value == None:
          builder.ret_void()
       else:
-         const_1 = ll.Constant(ll.IntType(32),1);
+         const_1 = ll.Constant(ll.IntType(32),self.value);
          builder.ret(const_1)
    
 class ProgramAST(MiniCBaseAST):
