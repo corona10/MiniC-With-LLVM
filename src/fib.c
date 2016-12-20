@@ -1,7 +1,7 @@
 int x;
-void foo(int n) {
+int foo(int n) {
   n = n + 1;
-  return;
+  return n;
 }
 int main()
 {

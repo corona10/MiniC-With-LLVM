@@ -133,3 +133,51 @@ class ProgramAST(MiniCBaseAST):
          module = ast.codeGenerate(module)
       strmod = str(module)
       return strmod;
+
+def AssignAST(MiniCBaseAST):
+   def __init__(self, **kwargs):
+      self.s1 = kwargs['s1']
+      self.op = kwargs['op']
+      self.value = kwargs['value']
+
+   def codeGenerate(self,builder):
+      if self.op == "=":
+         builder.store(builder.load(s1), builder.load(s2)) 
+
+def BinaryAST(MiniCBaseAST):
+   def __init__(self, **kwargs):
+      self.s1 = kwargs['s1']
+      self.op = kwargs['op']
+      self.s2 = kwargs['s2']
+
+   def codeGenerate(self,builder):
+      if self.op == "+":
+         builder.store(builder.add(builder.load(s1),builder.load(s2)),s1)
+
+
+def UnaryAST(MiniCBaseAST):
+   def __init__(self,**kwargs):
+      self.op = kwargs['op']
+      self.s1= kwargs['s1']
+
+   def codeGenerate(self, builder):
+      if self.op == '++':
+         builder.store(builder.add(builder.load(s1), ll.Constant(ll.intType(32),1)),builder.load(s1))
+      elif self.op == '--':
+         builder.store(builder.sub(builder.load(s1), ll.Constant(ll.intType(32),1)),builder.load(s1))
+      elif self.op == '+':
+         builder.load(s1)
+      elif self.op == '-':
+         builder.neg(s1)
+        
+
+def ExprAST(MiniCBaseAST):
+   def __init__(self):
+      self.asts = []
+
+   def codeGenerate(self, builder):
+      module = ll.Module()
+      for ast in self.asts:
+         module = ast.codeGenerate(module)
+      strmod = str(module)
+      return strmod;

@@ -223,48 +223,49 @@ class MiniCListener(ParseTreeListener):
     def exitExpr(self, ctx):
         #expr=""
         #print ctx.getText()
-        #if ctx.getChildCount() > 0:
-        #    if ctx.getChildCount() == 1:
-        #        expr+=ctx.getChild(0).getText()
-        #    elif ctx.getChildCount() == 2:
-        #        expr+=ctx.getChild(0).getText()
-        #        expr+=self.prop[ctx.expr(0)]
-        #    elif ctx.getChildCount() == 3:
-        #        if ctx.getChild(0).getText() == "(":
-        #            expr+=ctx.getChild(0).getText()
-        #            expr+=self.prop[ctx.expr(0)]
-        #            expr+=ctx.getChild(2).getText()
-        #        elif ctx.getChild(1).getText() == "=":
-        #            expr+=ctx.getChild(0).getText()
-        #            expr+=" "
-        #            expr+=ctx.getChild(1).getText()
-        #            expr+=" "
-        #            expr+=self.prop[ctx.expr(0)]
-        #        else: #binary
-        #            expr+=self.prop[ctx.expr(0)]
-        #            expr+=" "
-        #            expr+=ctx.getChild(1).getText()
-        #            expr+=" "
-        #            expr+=self.prop[ctx.expr(1)]
-        #    elif ctx.getChildCount() == 4:
-        #        expr+=ctx.getChild(0).getText()
-        #        if ctx.args() is not None:
-        #            expr+=ctx.getChild(1).getText()
-        #            expr+=self.prop[ctx.args()]
-        #        else:
-        #            expr+=ctx.getChild(1).getText
-        #            expr+=self.prop[ctx.expr(0)]
-        #        expr+=ctx.getChild(3).getText()
-        #    else:
-        #        expr+=ctx.getChild(0).getText()
-        #        expr+=ctx.getChild(1).getText()
-        #        expr+=self.prop[ctx.expr(0)]
-        #        expr+=ctx.getChild(3).getText()
-        #        expr+=" "
-        #        expr+=ctx.getChild(4).getText()
-        #        expr+=" "
-        #        expr+=self.prop[ctx.expr(1)]
-        #    self.prop[ctx]=expr
+        if ctx.getChildCount() > 0:
+            if ctx.getChildCount() == 1:
+                ast=ctx.getChild(0).getText()
+            elif ctx.getChildCount() == 2:
+                op = ctx.getChild(0).getText()
+                s1=self.prop[ctx.expr(0)]
+                ast= UniaryAST(op=op,s1=s1)
+            elif ctx.getChildCount() == 3:
+                if ctx.getChild(0).getText() == "(":
+                    expr+=ctx.getChild(0).getText()
+                    expr+=self.prop[ctx.expr(0)]
+                    expr+=ctx.getChild(2).getText()
+                elif ctx.getChild(1).getText() == "=":
+                    s1=ctx.getChild(0).getText()
+                    op=ctx.getChild(1).getText()
+                    s2 =self.prop[ctx.expr(0)]
+                    ast = AissignAST(s1=s1,op=op,s2=s2)
+                else: #Binary
+                    s1 = self.prop[ctx.expr(0)]
+                    op = ctx.getChild(1).getText()
+                    s2 = self.prop[ctx.expr(1)]
+                    ast = BinaryAST(s1=s1,op=op,s2=s2)
+            elif ctx.getChildCount() == 4:
+                #IDNET(args) or IDENT[args]
+                expr+=ctx.getChild(0).getText()
+                if ctx.args() is not None:
+                    expr+=ctx.getChild(1).getText()
+                    expr+=self.prop[ctx.args()]
+                else:
+                    expr+=ctx.getChild(1).getText
+                    expr+=self.prop[ctx.expr(0)]
+                expr+=ctx.getChild(3).getText()
+                
+            else:
+                #IDENT[expr] = expr
+                IDENT = ctx.getChild(0).getText()
+                lb = ctx.getChild(1).getText()
+                loc = self.prop[ctx.expr(0)]
+                rb = ctx.getChild(3).getText()
+                assign = ctx.getChild(4).getText()
+                value = self.prop[ctx.expr(1)]
+                
+            self.prop[ctx]=ast
         pass
 
 
