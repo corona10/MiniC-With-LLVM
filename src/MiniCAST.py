@@ -138,6 +138,7 @@ class ProgramAST(MiniCBaseAST):
 
    def codeGenerate(self):
       module = ll.Module()
+      module.triple = llvm.get_default_triple()
       for ast in self.asts:
          module = ast.codeGenerate(module)
       strmod = str(module)
