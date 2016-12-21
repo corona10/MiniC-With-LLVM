@@ -283,7 +283,8 @@ class MiniCListener(ParseTreeListener):
         if ctx.getChildCount() == 2:
             rtn_ast = ReturnAST()
         else:
-            rtn_ast = ReturnAST(value="3")
+            print self.prop[ctx.getChild(1)],"@@@@@"
+            rtn_ast = ReturnAST(value=self.prop[ctx.getChild(1)])
         self.prop[ctx] = rtn_ast
 
     # Enter a parse tree produced by MiniCParser#expr.
