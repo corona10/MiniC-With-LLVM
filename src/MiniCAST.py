@@ -227,12 +227,20 @@ class BinaryAST(MiniCBaseAST):
       s2_load = self.s2.codeGenerate(builder,var_ptr_symbolTBL)
       if self.op == "+":
          return builder.add(s1_load,s2_load)
-      if self.op == "-":
+      elif self.op == "-":
          return builder.sub(s1_load,s2_load)
-      if self.op == "*":
+      elif self.op == "*":
          return builder.mul(s1_load,s2_load)
-      if self.op == "/":
-         return builder.udiv(s1_load,s2_load)
+      elif self.op == "/":
+         return builder.sdiv(s1_load,s2_load)
+      elif self.op == "%":
+         return builder.srem(s1_load,s2_load)
+      elif self.op == "and":
+         return builder.and_(s1_load,s2_load)
+      elif self.op == "or":
+         return builder.or_(s1_load,s2_load)
+      else:
+         return builder.icmp_signed(cmpop=self.op, lhs=s1_load, rhs=s2_load )
       
 
 

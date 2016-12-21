@@ -11,8 +11,14 @@ int foo(int n) {
 int main()
 {
    int x;
+   int y;
    x = 5;
+   y = 1;
    ++x;
+   x < 5;
+   x % y;
+   x and y;
+   x or y;
    foo(x);
    return 0;
 }
