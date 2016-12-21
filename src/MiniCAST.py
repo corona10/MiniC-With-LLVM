@@ -293,11 +293,8 @@ class ArrayAssignAST(MiniCBaseAST):
 
    def codeGenerate(self, builder, var_ptr_symbolTBL):
       s1_ptr = var_ptr_symbolTBL[self.IDENT]
-      print s1_ptr
       s1_load = self.value.codeGenerate(builder,var_ptr_symbolTBL)
-      print s1_load
       idx = self.idx.codeGenerate(builder,var_ptr_symbolTBL)
-      print idx
       bgep = builder.gep(s1_ptr, [ll.Constant(ll.IntType(32),0),idx], inbounds=False)
       builder.store(s1_load, bgep)
 

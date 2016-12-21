@@ -14,7 +14,7 @@ int main()
    int y;
    x = 5;
    t[3] = 2;
-   x = t[3]
+   x = t[3];
    y = 1;
    x % y;
    x and y;
