@@ -84,13 +84,14 @@ class FunctionAST(MiniCBaseAST):
       rtn_type = self.function_type.codeGenerate()
       ftype = ll.FunctionType(rtn_type, self.args_types)
       function = ll.Function(module, ftype, self.name)
+      builder = ll.IRBuilder(function.append_basic_block(self.name))
       function_set[self.name] = function
       if self.args_names is not None:
          for idx in range(len(self.args_names)):
             function.args[idx].name = self.args_names[idx]
             function.args[idx].type = self.args_types[idx]
       self.compound_stmt.function = function
-      self.compound_stmt.codeGenerate(var_ptr_symbolTBL)
+      self.compound_stmt.codeGenerate(builder,var_ptr_symbolTBL)
       return module
 
    def pushAST(self, ast):
@@ -137,8 +138,7 @@ class CompoundAST(MiniCBaseAST):
       self.ast_list = []
       self.hasRet = False
 
-   def codeGenerate(self,var_ptr_symbolTBL):
-      builder = ll.IRBuilder(self.function.append_basic_block(self.name))
+   def codeGenerate(self,builder,var_ptr_symbolTBL):
       if self.function.args is not None:
          for idx in range(len(self.function.args)):
             ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
@@ -312,4 +312,4 @@ class IfAST(MiniCBaseAST):
        func = function_set[self.func_name]
        self.stmt.function = func
        with builder.if_then(cond) as bbend:
-            self.stmt.codeGenerate(var_ptr_symbolTBL)
+            self.stmt.codeGenerate(builder,var_ptr_symbolTBL)
