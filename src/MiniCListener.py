@@ -35,13 +35,17 @@ class MiniCListener(ParseTreeListener):
         strmod = str(mod)
         print "=== Generated IR code ===\n"
         print strmod
+        with open("output.ll", 'w') as f:
+            f.write(strmod)
+ 
         llmod = llvm.parse_assembly(strmod)
         llmod.verify()
         with llvm.create_mcjit_compiler(llmod, self.tm) as ee:
             ee.finalize_object()
             print "=== Generated assembly code ===\n"
             print(self.tm.emit_assembly(llmod))
-
+            with open("output.asm", 'w') as f:
+                f.write(self.tm.emit_assembly(llmod))
 
     # Enter a parse tree produced by MiniCParser#decl.
     def enterDecl(self, ctx):

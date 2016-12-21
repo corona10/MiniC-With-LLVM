@@ -92,6 +92,8 @@ class FunctionAST(MiniCBaseAST):
             function.args[idx].type = self.args_types[idx]
       self.compound_stmt.function = function
       self.compound_stmt.codeGenerate(builder,var_ptr_symbolTBL)
+      #dot = llvm.get_function_cfg(function)
+      #llvm.view_dot_graph(dot).view(cleanup=True)
       return module
 
    def pushAST(self, ast):
