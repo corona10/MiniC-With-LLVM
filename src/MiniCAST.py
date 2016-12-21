@@ -1,6 +1,7 @@
 import llvmlite.ir as ll
 import llvmlite.binding as llvm
 
+function_set = {}
 
 def int32(value):
    return ll.Constant(ll.IntType(32),value)
@@ -60,7 +61,6 @@ class LocalDeclAST(MiniCBaseAST):
        else:
            ty = ll.ArrayType(ll.IntType(32), self.size)
            decl = builder.alloca(ty, name=self.name)
-       print self.name , "!#@"
        var_ptr_symbolTBL[self.name] = decl
        return builder
 
@@ -83,6 +83,7 @@ class FunctionAST(MiniCBaseAST):
       rtn_type = self.function_type.codeGenerate()
       ftype = ll.FunctionType(rtn_type, self.args_types)
       function = ll.Function(module, ftype, self.name)
+      function_set[self.name] = function
       if self.args_names is not None:
          for idx in range(len(self.args_names)):
             function.args[idx].name = self.args_names[idx]
@@ -141,9 +142,7 @@ class CompoundAST(MiniCBaseAST):
          for idx in range(len(self.function.args)):
             ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
             var_ptr_symbolTBL[self.function.args[idx].name] = ptr
-      print self.ast_list
       for ast in self.ast_list:
-         print ast
          ast.codeGenerate(builder,var_ptr_symbolTBL)
 
    def pushAST(self, ast):
@@ -168,7 +167,6 @@ class ReturnAST(MiniCBaseAST):
              load = self.value.codeGenerate(builder,var_ptr_symbolTBL)
          else:
              load = self.value.codeGenerate(builder,var_ptr_symbolTBL) 
-         print load
          rvalue = load
          builder.ret(rvalue)
    
@@ -180,8 +178,6 @@ class ProgramAST(MiniCBaseAST):
       module = ll.Module()
       module.triple = llvm.get_default_triple()
       for ast in self.asts:
-         print ast
-         print module
          module = ast.codeGenerate(module, var_ptr_symbolTBL)
       strmod = str(module)
       return strmod;
@@ -194,12 +190,9 @@ class AssignAST(MiniCBaseAST):
 
    def codeGenerate(self,builder,var_ptr_symbolTBL):
       if self.op == "=":
-         print var_ptr_symbolTBL
-         print self.s1
          s2_load = self.s2.codeGenerate(builder,var_ptr_symbolTBL)
          s1_ptr = var_ptr_symbolTBL[self.s1]
          A =  builder.store(s2_load,s1_ptr) 
-         print A
 
 class FunctionCallAST(MiniCBaseAST):
 
@@ -208,7 +201,11 @@ class FunctionCallAST(MiniCBaseAST):
       self.args = kwargs['args']
 
    def codeGenerate(self,builder,var_symbolTBL):
-      return builder.call(self.IDENT, self.args)
+      args = []
+      for arg in self.args:
+          args.append(arg.codeGenerate(builder, var_symbolTBL))
+      print tuple(args)
+      return builder.call(function_set[self.IDENT], tuple(args))
 
 class ArrayAST(MiniCBaseAST):
 
@@ -231,6 +228,12 @@ class BinaryAST(MiniCBaseAST):
       s2_load = self.s2.codeGenerate(builder,var_ptr_symbolTBL)
       if self.op == "+":
          return builder.add(s1_load,s2_load)
+      if self.op == "-":
+         return builder.sub(s1_load,s2_load)
+      if self.op == "*":
+         return builder.mul(s1_load,s2_load)
+      if self.op == "/":
+         return builder.udiv(s1_load,s2_load)
       
 
 

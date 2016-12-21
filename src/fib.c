@@ -1,6 +1,9 @@
-void foo(int n) {
+int foo(int n) {
+  int k;
   n = n + 1;
-  return n;
+  n = n - 1;
+  k = n * 2;
+  return n + k;
 }
 int main()
 {

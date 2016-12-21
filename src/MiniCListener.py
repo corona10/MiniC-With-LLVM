@@ -28,9 +28,7 @@ class MiniCListener(ParseTreeListener):
     def exitProgram(self, ctx):
         programAst = ProgramAST()
         for child in ctx.getChildren():
-            print child.getText()
             child_ast = self.prop[child]
-            print child_ast
             programAst.asts.append(child_ast) 
         strmod = programAst.codeGenerate(self.var_ptr_symbolTBL)
         print "=== Generated IR code ===\n"
@@ -167,9 +165,7 @@ class MiniCListener(ParseTreeListener):
         #        ast = self.prop[ctx.return_stmt()]
         
         if ctx.getChild(0) in self.prop:
-           print ctx.getChild(0).getText()
            ast = self.prop[ctx.getChild(0)]
-           print ast
            self.prop[ctx] = ast
 
 
@@ -251,10 +247,7 @@ class MiniCListener(ParseTreeListener):
             name = ctx.getChild(1).getText()
             size = int(ctx.getChild(3).getText())
             ast = LocalDeclAST(type = ty, name= name, is_array= True, size = size)
-        print name
-        print ast
         self.add_var(name,ast)
-        print self.var_symbolTBL
         self.prop[ctx] = ast
 
 
@@ -283,7 +276,6 @@ class MiniCListener(ParseTreeListener):
         if ctx.getChildCount() == 2:
             rtn_ast = ReturnAST()
         else:
-            print self.prop[ctx.getChild(1)],"@@@@@"
             rtn_ast = ReturnAST(value=self.prop[ctx.getChild(1)])
         self.prop[ctx] = rtn_ast
 
@@ -298,7 +290,6 @@ class MiniCListener(ParseTreeListener):
     def exitExpr(self, ctx):
         if ctx.getChildCount() > 0:
             if ctx.getChildCount() == 1:
-                print "load EXPR"
                 if ctx.getChild(0) == ctx.LITERAL():
                    expr=ctx.getChild(0).getText()
                    ast=LiteralAST(value = expr)
@@ -317,9 +308,7 @@ class MiniCListener(ParseTreeListener):
                     s1 = ctx.getChild(0).getText()
                     op = ctx.getChild(1).getText()
                     s2 = self.prop[ctx.expr(0)]
-                    print s1 , op , s2
                     ast = AssignAST(s1=s1,op=op,s2=s2)
-                    print ast, "@@@"
                     self.add_var(s1,s2)
                 else: #Binary
                     s1 = self.prop[ctx.expr(0)]
@@ -334,7 +323,6 @@ class MiniCListener(ParseTreeListener):
                     f=ctx.getChild(1).getText()
                     kwargs={}
                     if f == "(":
-                        #print ctx.args().getText()
                         args=self.prop[ctx.args()]
                         ast = FunctionCallAST(IDENT=IDENT, args=args) 
                     if f == "[":
