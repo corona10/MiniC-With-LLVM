@@ -180,8 +180,7 @@ class ProgramAST(MiniCBaseAST):
       module.triple = llvm.get_default_triple()
       for ast in self.asts:
          module = ast.codeGenerate(module, var_ptr_symbolTBL)
-      strmod = str(module)
-      return strmod;
+      return module;
 
 class AssignAST(MiniCBaseAST):
    def __init__(self, **kwargs):
@@ -304,12 +303,23 @@ class IfAST(MiniCBaseAST):
    def __init__(self, **kwargs):
       self.cond = kwargs['cond']
       self.stmt = kwargs['stmt']
+      self.else_stmt = None
       self.func_name = kwargs['function_name']
+      if 'else_stmt' in kwargs:
+          self.else_stmt = kwargs['else_stmt']
 
    def codeGenerate(self, builder, var_ptr_symbolTBL):
-       print self.cond
        cond = self.cond.codeGenerate(builder, var_ptr_symbolTBL)
        func = function_set[self.func_name]
-       self.stmt.function = func
-       with builder.if_then(cond) as bbend:
-            self.stmt.codeGenerate(builder,var_ptr_symbolTBL)
+       if self.else_stmt == None:
+           with builder.if_then(cond) as bbend:
+               self.stmt.function = func
+               self.stmt.codeGenerate(builder,var_ptr_symbolTBL)
+       else:
+            with builder.if_else(cond) as (then, otherwise):
+                with then:
+                    self.stmt.function = func
+                    self.stmt.codeGenerate(builder,var_ptr_symbolTBL)
+                with otherwise:
+                    self.else_stmt.function = func  
+                    self.else_stmt.codeGenerate(builder,var_ptr_symbolTBL)

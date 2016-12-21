@@ -31,7 +31,8 @@ class MiniCListener(ParseTreeListener):
         for child in ctx.getChildren():
             child_ast = self.prop[child]
             programAst.asts.append(child_ast) 
-        strmod = programAst.codeGenerate(self.var_ptr_symbolTBL)
+        mod  = programAst.codeGenerate(self.var_ptr_symbolTBL)
+        strmod = str(mod)
         print "=== Generated IR code ===\n"
         print strmod
         llmod = llvm.parse_assembly(strmod)
@@ -267,7 +268,11 @@ class MiniCListener(ParseTreeListener):
             stmt = self.prop[ctx.getChild(4)]
             ast = IfAST(function_name = func_name, cond=cond, stmt = stmt)
         else:
-            pass
+            func_name = self.function_name_table[ctx]
+            cond = self.prop[ctx.getChild(2)]
+            stmt = self.prop[ctx.getChild(4)]
+            elstmt = self.prop[ctx.getChild(6)]
+            ast = IfAST(function_name = func_name , cond=cond, stmt=stmt, else_stmt = elstmt)
         self.prop[ctx] = ast
 
 

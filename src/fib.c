@@ -18,7 +18,9 @@ int main()
    y = 1;
    if( y < 4){
       y = 3;
-      return 1;
+   }else{
+      y = 4;
    }
+
    return 0;
 }
