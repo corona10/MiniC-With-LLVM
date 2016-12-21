@@ -281,7 +281,7 @@ class MiniCListener(ParseTreeListener):
             if return_val is None:
                rtn_ast = ReturnAST(value=ctx.getChild(1))
             else:
-               rtn_ast = ReturnAST(value=self.prop[retrun_val])
+               rtn_ast = ReturnAST(value=return_val)
         self.prop[ctx] = rtn_ast
 
     # Enter a parse tree produced by MiniCParser#expr.
