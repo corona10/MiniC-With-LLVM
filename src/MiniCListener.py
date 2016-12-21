@@ -26,7 +26,7 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#program.
     def exitProgram(self, ctx):
-        print self.function_symbol_table
+        print "* Target cpu: " + llvm.get_host_cpu_name()
         programAst = ProgramAST()
         for child in ctx.getChildren():
             child_ast = self.prop[child]
@@ -344,7 +344,6 @@ class MiniCListener(ParseTreeListener):
                    ast = ArrayAssignAST(IDENT=IDENT,idx=idx,value=value)
                 
             self.prop[ctx]=ast
-        pass
 
 
     # Enter a parse tree produced by MiniCParser#args.

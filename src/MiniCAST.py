@@ -35,6 +35,7 @@ class GlobalAST(MiniCBaseAST):
        else:
            ty = ll.ArrayType(ll.IntType(32), self.size)
            gv = ll.GlobalVariable(module, ty, self.name)
+           gv.initializer = ll.Constant(ll.ArrayType(ll.IntType(32), self.size), None)
        var_ptr_symbolTBL[self.name] = gv
            
        return module  
