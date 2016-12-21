@@ -29,9 +29,7 @@ class MiniCListener(ParseTreeListener):
     def exitProgram(self, ctx):
         programAst = ProgramAST()
         for child in ctx.getChildren():
-            print child.getText()
             child_ast = self.prop[child]
-            print child_ast
             programAst.asts.append(child_ast) 
         strmod = programAst.codeGenerate(self.var_ptr_symbolTBL)
         print "=== Generated IR code ===\n"

@@ -190,12 +190,9 @@ class AssignAST(MiniCBaseAST):
 
    def codeGenerate(self,builder,var_ptr_symbolTBL):
       if self.op == "=":
-         print var_ptr_symbolTBL
-         print self.s1
          s2_load = self.s2.codeGenerate(builder,var_ptr_symbolTBL)
          s1_ptr = var_ptr_symbolTBL[self.s1]
          A =  builder.store(s2_load,s1_ptr) 
-         print A
 
 class FunctionCallAST(MiniCBaseAST):
 
@@ -204,6 +201,8 @@ class FunctionCallAST(MiniCBaseAST):
       self.args = kwargs['args']
 
    def codeGenerate(self,builder,var_ptr_symbolTBL):
+      print self.IDENT
+      print self.args
       return builder.call(self.IDENT, self.args)
 
 class ArrayAST(MiniCBaseAST):
@@ -228,23 +227,23 @@ class BinaryAST(MiniCBaseAST):
       if self.op == "+":
          return builder.add(s1_load,s2_load)
       
-
-
 class UnaryAST(MiniCBaseAST):
 
    def __init__(self,**kwargs):
       self.op = kwargs['op']
       self.s1= kwargs['s1']
 
-   def codeGenerate(self, builder,var_symbolTBL):
+   def codeGenerate(self, builder,var_ptr_symbolTBL):
+      s1_load = self.s1.codeGenerate(builder,var_symbolTBL)
+      s1_ptr = var_symbolTBL[self.s1]
       if self.op == '++':
-         builder.store(builder.add(builder.load(s1), ll.Constant(ll.intType(32),1)),builder.load(s1))
+         return builder.store(builder.add(s1_load, ll.Constant(ll.intType(32),1)),s1_ptr)
       elif self.op == '--':
-         builder.store(builder.sub(builder.load(s1), ll.Constant(ll.intType(32),1)),builder.load(s1))
+         return builder.store(builder.sub(s1_load, ll.Constant(ll.intType(32),1)),s1_ptr)
       elif self.op == '+':
-         builder.load(s1)
+         return s1_ptr
       elif self.op == '-':
-         builder.neg(s1)
+         return builder.neg(s1_load)
         
 class LiteralAST(MiniCBaseAST):
 
