@@ -299,3 +299,17 @@ class ArrayAssignAST(MiniCBaseAST):
       builder.store(s1_load, bgep)
 
 
+class IfAST(MiniCBaseAST):
+   
+   def __init__(self, **kwargs):
+      self.cond = kwargs['cond']
+      self.stmt = kwargs['stmt']
+      self.func_name = kwargs['function_name']
+
+   def codeGenerate(self, builder, var_ptr_symbolTBL):
+       print self.cond
+       cond = self.cond.codeGenerate(builder, var_ptr_symbolTBL)
+       func = function_set[self.func_name]
+       self.stmt.function = func
+       with builder.if_then(cond) as bbend:
+            self.stmt.codeGenerate(var_ptr_symbolTBL)

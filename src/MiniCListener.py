@@ -261,7 +261,14 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#if_stmt.
     def exitIf_stmt(self, ctx):
-        pass
+        if ctx.getChildCount() == 5:
+            func_name = self.function_name_table[ctx]
+            cond = self.prop[ctx.getChild(2)]
+            stmt = self.prop[ctx.getChild(4)]
+            ast = IfAST(function_name = func_name, cond=cond, stmt = stmt)
+        else:
+            pass
+        self.prop[ctx] = ast
 
 
     # Enter a parse tree produced by MiniCParser#return_stmt.

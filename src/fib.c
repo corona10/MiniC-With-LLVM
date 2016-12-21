@@ -16,9 +16,9 @@ int main()
    t[3] = 2;
    x = t[3];
    y = 1;
-   x % y;
-   x and y;
-   x or y;
-   foo(x);
+   if( y < 4){
+      y = 3;
+      return 1;
+   }
    return 0;
 }
