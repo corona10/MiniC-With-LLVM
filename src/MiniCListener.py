@@ -341,7 +341,7 @@ class MiniCListener(ParseTreeListener):
                 assign = ctx.getChild(4).getText()
                 value = self.prop[ctx.expr(1)]
                 if lb == "[" and assign == "=":
-                   ast = ArrayAssignAST(IDENT,idx,value)
+                   ast = ArrayAssignAST(IDENT=IDENT,idx=idx,value=value)
                 
             self.prop[ctx]=ast
 

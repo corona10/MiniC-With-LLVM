@@ -1,4 +1,3 @@
-int t[5];
 int i;
 int foo(int n) {
   int k;
@@ -10,12 +9,12 @@ int foo(int n) {
 }
 int main()
 {
+   int t[5];
    int x;
    int y;
    x = 5;
+   t[3] = 2;
    y = 1;
-   ++x;
-   x < 5;
    x % y;
    x and y;
    x or y;

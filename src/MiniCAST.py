@@ -280,3 +280,31 @@ class IdentAST(MiniCBaseAST):
       return builder.load(var_ptr_symbolTBL[self.value])
 
 
+class ArrayAST(MiniCBaseAST):
+   def __init__(self, **kwargs):
+      self.IDENT = kwargs['IDENT']
+      self.expr = kwargs['expr']
+
+   def codeGenerate(self, builder, var_ptr_symbolTBL):
+      s1_ptr = var_ptr_symbolTBL[self.IDENT]
+      idx = self.expr.codeGenerate(builder,var_ptr_symbolTBL)
+      return builder.load(IRBuilder.gep(s1_ptr, self.expr, inbounds=False, name=self.IDENT))
+
+class ArrayAssignAST(MiniCBaseAST):
+
+   def __init__(self, **kwargs):
+      self.IDENT = kwargs['IDENT']
+      self.idx= kwargs['idx']
+      self.value = kwargs['value']
+
+   def codeGenerate(self, builder, var_ptr_symbolTBL):
+      s1_ptr = var_ptr_symbolTBL[self.IDENT]
+      print s1_ptr
+      s1_load = self.value.codeGenerate(builder,var_ptr_symbolTBL)
+      print s1_load
+      idx = self.idx.codeGenerate(builder,var_ptr_symbolTBL)
+      print idx
+      bgep = builder.gep(s1_ptr, [ll.Constant(ll.IntType(32),0),idx], inbounds=False)
+      builder.store(s1_load, bgep)
+
+
