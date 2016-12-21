@@ -14,7 +14,9 @@ class MiniCListener(ParseTreeListener):
         self.prop={}
         self.function_name_table = {}
         self.function_symbol_table = {}
-        self.symbolTBL = {}
+        self.var_symbolTBL = {}
+        self.var_ptr_symbolTBL = {}
+        self.var_ptr_symbolTBL['var_symbolTBL'] = self.var_symbolTBL
 
         self.tm = llvm.Target.from_default_triple().create_target_machine()
 
@@ -30,7 +32,7 @@ class MiniCListener(ParseTreeListener):
             child_ast = self.prop[child]
             print child_ast
             programAst.asts.append(child_ast) 
-        strmod = programAst.codeGenerate(self.symbolTBL)
+        strmod = programAst.codeGenerate(self.var_ptr_symbolTBL)
         print "=== Generated IR code ===\n"
         print strmod
         llmod = llvm.parse_assembly(strmod)
@@ -137,6 +139,7 @@ class MiniCListener(ParseTreeListener):
         param_type = ctx.getChild(0).getText()
         param_name = ctx.getChild(1).getText()
         ast = ParamAST(type=param_type, name = param_name)
+        self.add_var(param_name,ast)
         self.prop[ctx] = ast
 
 
@@ -224,8 +227,16 @@ class MiniCListener(ParseTreeListener):
     def enterLocal_decl(self, ctx):
         pass
 
+    def add_var(self,name, ast):
+        if name in self.var_symbolTBL.keys():
+           self.var_symbolTBL[name].append(ast)
+        else:
+           self.var_symbolTBL[name] = []
+           self.var_symbolTBL[name].append(ast)
+
     # Exit a parse tree produced by MiniCParser#local_decl.
     def exitLocal_decl(self, ctx):
+        print "exitLocal decl"
         if ctx.getChildCount() == 3:
             ty = self.prop[ctx.getChild(0)]
             name = ctx.getChild(1).getText()
@@ -240,6 +251,10 @@ class MiniCListener(ParseTreeListener):
             name = ctx.getChild(1).getText()
             size = int(ctx.getChild(3).getText())
             ast = LocalDeclAST(type = ty, name= name, is_array= True, size = size)
+        print name
+        print ast
+        self.add_var(name,ast)
+        print self.var_symbolTBL
         self.prop[ctx] = ast
 
 
@@ -282,10 +297,13 @@ class MiniCListener(ParseTreeListener):
     def exitExpr(self, ctx):
         if ctx.getChildCount() > 0:
             if ctx.getChildCount() == 1:
+                print "load EXPR"
                 if ctx.getChild(0) == ctx.LITERAL():
-                   ast=ctx.getChild(0).getText()
+                   expr=ctx.getChild(0).getText()
+                   ast=LiteralAST(value = expr)
                 elif ctx.getChild(0) == ctx.IDENT():
-                   ast=ctx.getChild(0).getText()
+                   expr=ctx.getChild(0).getText()
+                   ast=IdentAST(value=expr)
             elif ctx.getChildCount() == 2:
                 op = ctx.getChild(0).getText()
                 s1=self.prop[ctx.expr(0)]
@@ -295,11 +313,13 @@ class MiniCListener(ParseTreeListener):
                     expr=self.prop[ctx.expr(0)]
                     ast = expr
                 elif ctx.getChild(1).getText() == "=":
-                    s1=ctx.getChild(0).getText()
-                    op=ctx.getChild(1).getText()
-                    s2 =self.prop[ctx.expr(0)]
+                    s1 = ctx.getChild(0).getText()
+                    op = ctx.getChild(1).getText()
+                    s2 = self.prop[ctx.expr(0)]
+                    print s1 , op , s2
                     ast = AssignAST(s1=s1,op=op,s2=s2)
                     print ast, "@@@"
+                    self.add_var(s1,s2)
                 else: #Binary
                     s1 = self.prop[ctx.expr(0)]
                     op = ctx.getChild(1).getText()
@@ -357,5 +377,4 @@ class MiniCListener(ParseTreeListener):
                     #args+=" "
         self.prop[ctx]=args
         pass
-
 

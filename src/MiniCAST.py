@@ -25,7 +25,7 @@ class GlobalAST(MiniCBaseAST):
       if self.is_array == True:
           self.size = kwargs['size']
 
-   def codeGenerate(self, module,symbolTBL):
+   def codeGenerate(self, module,var_ptr_symbolTBL):
        if self.is_array == False:
            ty = self.type.codeGenerate()
            gv = ll.GlobalVariable(module,ty,self.name)
@@ -34,6 +34,7 @@ class GlobalAST(MiniCBaseAST):
        else:
            ty = ll.ArrayType(ll.IntType(32), self.size)
            gv = ll.GlobalVariable(module, ty, self.name)
+       var_ptr_symbolTBL[self.name] = gv
            
        return module  
 
@@ -50,7 +51,7 @@ class LocalDeclAST(MiniCBaseAST):
       if self.is_array == True:
           self.size = kwargs['size']
 
-   def codeGenerate(self, builder, symbolTBL):
+   def codeGenerate(self, builder, var_ptr_symbolTBL):
        if self.is_array == False:
            ty = self.type.codeGenerate()
            decl = builder.alloca(ll.IntType(32), name=self.name)
@@ -60,7 +61,7 @@ class LocalDeclAST(MiniCBaseAST):
            ty = ll.ArrayType(ll.IntType(32), self.size)
            decl = builder.alloca(ty, name=self.name)
        print self.name , "!#@"
-       symbolTBL[self.name] = decl
+       var_ptr_symbolTBL[self.name] = decl
        return builder
 
 class FunctionAST(MiniCBaseAST):
@@ -78,15 +79,16 @@ class FunctionAST(MiniCBaseAST):
          self.args_types = []
       self.bb_lists = []
 
-   def codeGenerate(self, module,symbolTBL):
+   def codeGenerate(self, module,var_ptr_symbolTBL):
       rtn_type = self.function_type.codeGenerate()
       ftype = ll.FunctionType(rtn_type, self.args_types)
       function = ll.Function(module, ftype, self.name)
       if self.args_names is not None:
          for idx in range(len(self.args_names)):
             function.args[idx].name = self.args_names[idx]
+            function.args[idx].type = self.args_types[idx]
       self.compound_stmt.function = function
-      self.compound_stmt.codeGenerate(symbolTBL)
+      self.compound_stmt.codeGenerate(var_ptr_symbolTBL)
       return module
 
    def pushAST(self, ast):
@@ -133,12 +135,16 @@ class CompoundAST(MiniCBaseAST):
       self.ast_list = []
       self.hasRet = False
 
-   def codeGenerate(self,symbolTBL):
+   def codeGenerate(self,var_ptr_symbolTBL):
       builder = ll.IRBuilder(self.function.append_basic_block(self.name))
+      if self.function.args is not None:
+         for idx in range(len(self.function.args)):
+            ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
+            var_ptr_symbolTBL[self.function.args[idx].name] = ptr
       print self.ast_list
       for ast in self.ast_list:
          print ast
-         ast.codeGenerate(builder,symbolTBL)
+         ast.codeGenerate(builder,var_ptr_symbolTBL)
 
    def pushAST(self, ast):
       self.ast_list.append(ast)
@@ -153,7 +159,7 @@ class ReturnAST(MiniCBaseAST):
       else:
          self.value = None
    
-   def codeGenerate(self, builder,symbolTBL):
+   def codeGenerate(self, builder,var_symbolTBL):
       if self.value == None:
          builder.ret_void()
       else:
@@ -164,12 +170,13 @@ class ProgramAST(MiniCBaseAST):
    def __init__(self):
       self.asts = []
 
-   def codeGenerate(self,symbolTBL):
+   def codeGenerate(self,var_ptr_symbolTBL):
       module = ll.Module()
       module.triple = llvm.get_default_triple()
       for ast in self.asts:
          print ast
-         module = ast.codeGenerate(module, symbolTBL)
+         print module
+         module = ast.codeGenerate(module, var_ptr_symbolTBL)
       strmod = str(module)
       return strmod;
 
@@ -179,15 +186,14 @@ class AssignAST(MiniCBaseAST):
       self.op = kwargs['op']
       self.s2 = kwargs['s2']
 
-   def codeGenerate(self,builder,symbolTBL):
+   def codeGenerate(self,builder,var_ptr_symbolTBL):
       if self.op == "=":
-         print symbolTBL
-         print symbolTBL[self.s1],"#@#@#"
-         ss1 = builder.load(name=self.s1)
-         print ss1,"##"
-         ss2 = builder.load(name=self.s2)
-         print ss2,"##@"
-         builder.store(ss1,ss2) 
+         print var_ptr_symbolTBL
+         print self.s1
+         s2_load = self.s2.codeGenerate(builder,var_ptr_symbolTBL)
+         s1_ptr = var_ptr_symbolTBL[self.s1]
+         A =  builder.store(s2_load,s1_ptr) 
+         print A
 
 class FunctionCallAST(MiniCBaseAST):
 
@@ -195,8 +201,8 @@ class FunctionCallAST(MiniCBaseAST):
       self.IDENT = kwargs['IDENT']
       self.args = kwargs['args']
 
-   def codeGenerate(self,builder,symbolTBL):
-      builder.call(self.IDENT, self.args)
+   def codeGenerate(self,builder,var_symbolTBL):
+      return builder.call(self.IDENT, self.args)
 
 class ArrayAST(MiniCBaseAST):
 
@@ -204,8 +210,8 @@ class ArrayAST(MiniCBaseAST):
       self.IDENT = kwargs['IDENT']
       self.index = kwargs['index']
 
-   def codeGenerate(self,builder,symbolTBL):
-      builder.extract_value(self.IDENT, self.index)
+   def codeGenerate(self,builder,var_symbolTBL):
+      return builder.extract_value(self.IDENT, self.index)
 
 class BinaryAST(MiniCBaseAST):
 
@@ -214,9 +220,12 @@ class BinaryAST(MiniCBaseAST):
       self.op = kwargs['op']
       self.s2 = kwargs['s2']
 
-   def codeGenerate(self,builder,symbolTBL):
+   def codeGenerate(self,builder,var_ptr_symbolTBL):
+      s1_load = self.s1.codeGenerate(builder,var_ptr_symbolTBL)
+      s2_load = self.s2.codeGenerate(builder,var_ptr_symbolTBL)
       if self.op == "+":
-         builder.store(builder.add(builder.load(s1),builder.load(s2)), builder.load(s1))
+         return builder.add(s1_load,s2_load)
+      
 
 
 class UnaryAST(MiniCBaseAST):
@@ -225,7 +234,7 @@ class UnaryAST(MiniCBaseAST):
       self.op = kwargs['op']
       self.s1= kwargs['s1']
 
-   def codeGenerate(self, builder,symbolTBL):
+   def codeGenerate(self, builder,var_symbolTBL):
       if self.op == '++':
          builder.store(builder.add(builder.load(s1), ll.Constant(ll.intType(32),1)),builder.load(s1))
       elif self.op == '--':
@@ -235,3 +244,20 @@ class UnaryAST(MiniCBaseAST):
       elif self.op == '-':
          builder.neg(s1)
         
+class LiteralAST(MiniCBaseAST):
+
+   def __init__(self,**kwargs):
+      self.value = kwargs['value']
+
+   def codeGenerate(self, builder,var_ptr_symbolTBL):
+      return int32(self.value)
+        
+class IdentAST(MiniCBaseAST):
+
+   def __init__(self,**kwargs):
+      self.value = kwargs['value']
+
+   def codeGenerate(self, builder,var_ptr_symbolTBL):
+      return builder.load(var_ptr_symbolTBL[self.value])
+
+
