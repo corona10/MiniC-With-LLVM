@@ -17,6 +17,7 @@ class MiniCListener(ParseTreeListener):
         self.var_symbolTBL = {}
         self.var_ptr_symbolTBL = {}
         self.var_ptr_symbolTBL['var_symbolTBL'] = self.var_symbolTBL
+        self.var_ptr_symbolTBL['function_symbol_table'] = self.function_symbol_table
 
         self.tm = llvm.Target.from_default_triple().create_target_machine()
 
@@ -167,9 +168,7 @@ class MiniCListener(ParseTreeListener):
         #        ast = self.prop[ctx.return_stmt()]
         
         if ctx.getChild(0) in self.prop:
-           print ctx.getChild(0).getText()
            ast = self.prop[ctx.getChild(0)]
-           print ast
            self.prop[ctx] = ast
 
 
@@ -215,7 +214,6 @@ class MiniCListener(ParseTreeListener):
         self.prop[ctx] = compoundAST
         for stmt in ctx.getChildren():
            if stmt in self.prop:
-              #print stmt.getText()
               compoundAST.pushAST(self.prop[stmt])
         size = ctx.getChildCount()
         ast = self.prop[ctx.getChild(size-2)]
@@ -236,7 +234,6 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#local_decl.
     def exitLocal_decl(self, ctx):
-        print "exitLocal decl"
         if ctx.getChildCount() == 3:
             ty = self.prop[ctx.getChild(0)]
             name = ctx.getChild(1).getText()
@@ -251,10 +248,7 @@ class MiniCListener(ParseTreeListener):
             name = ctx.getChild(1).getText()
             size = int(ctx.getChild(3).getText())
             ast = LocalDeclAST(type = ty, name= name, is_array= True, size = size)
-        print name
-        print ast
         self.add_var(name,ast)
-        print self.var_symbolTBL
         self.prop[ctx] = ast
 
 
@@ -283,8 +277,11 @@ class MiniCListener(ParseTreeListener):
         if ctx.getChildCount() == 2:
             rtn_ast = ReturnAST()
         else:
-            print self.prop[ctx.getChild(1)],"@@@@@"
-            rtn_ast = ReturnAST(value=self.prop[ctx.getChild(1)])
+            return_val = self.prop[ctx.getChild(1)]
+            if return_val is None:
+               rtn_ast = ReturnAST(value=ctx.getChild(1))
+            else:
+               rtn_ast = ReturnAST(value=self.prop[retrun_val])
         self.prop[ctx] = rtn_ast
 
     # Enter a parse tree produced by MiniCParser#expr.
@@ -298,7 +295,6 @@ class MiniCListener(ParseTreeListener):
     def exitExpr(self, ctx):
         if ctx.getChildCount() > 0:
             if ctx.getChildCount() == 1:
-                print "load EXPR"
                 if ctx.getChild(0) == ctx.LITERAL():
                    expr=ctx.getChild(0).getText()
                    ast=LiteralAST(value = expr)
@@ -317,9 +313,7 @@ class MiniCListener(ParseTreeListener):
                     s1 = ctx.getChild(0).getText()
                     op = ctx.getChild(1).getText()
                     s2 = self.prop[ctx.expr(0)]
-                    print s1 , op , s2
                     ast = AssignAST(s1=s1,op=op,s2=s2)
-                    print ast, "@@@"
                     self.add_var(s1,s2)
                 else: #Binary
                     s1 = self.prop[ctx.expr(0)]
@@ -334,7 +328,6 @@ class MiniCListener(ParseTreeListener):
                     f=ctx.getChild(1).getText()
                     kwargs={}
                     if f == "(":
-                        #print ctx.args().getText()
                         args=self.prop[ctx.args()]
                         ast = FunctionCallAST(IDENT=IDENT, args=args) 
                     if f == "[":

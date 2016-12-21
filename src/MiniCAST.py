@@ -60,7 +60,6 @@ class LocalDeclAST(MiniCBaseAST):
        else:
            ty = ll.ArrayType(ll.IntType(32), self.size)
            decl = builder.alloca(ty, name=self.name)
-       print self.name , "!#@"
        var_ptr_symbolTBL[self.name] = decl
        return builder
 
@@ -141,9 +140,7 @@ class CompoundAST(MiniCBaseAST):
          for idx in range(len(self.function.args)):
             ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
             var_ptr_symbolTBL[self.function.args[idx].name] = ptr
-      print self.ast_list
       for ast in self.ast_list:
-         print ast
          ast.codeGenerate(builder,var_ptr_symbolTBL)
 
    def pushAST(self, ast):
@@ -163,12 +160,11 @@ class ReturnAST(MiniCBaseAST):
       if self.value == None:
          builder.ret_void()
       else:
-         #const_1 = ll.Constant(ll.IntType(32),0);
          if super(type(self.value)) ==  MiniCBaseAST:
              load = self.value.codeGenerate(builder,var_ptr_symbolTBL)
          else:
+             #TODO: return constant
              load = self.value.codeGenerate(builder,var_ptr_symbolTBL) 
-         print load
          rvalue = load
          builder.ret(rvalue)
    
@@ -207,7 +203,7 @@ class FunctionCallAST(MiniCBaseAST):
       self.IDENT = kwargs['IDENT']
       self.args = kwargs['args']
 
-   def codeGenerate(self,builder,var_symbolTBL):
+   def codeGenerate(self,builder,var_ptr_symbolTBL):
       return builder.call(self.IDENT, self.args)
 
 class ArrayAST(MiniCBaseAST):
@@ -216,7 +212,7 @@ class ArrayAST(MiniCBaseAST):
       self.IDENT = kwargs['IDENT']
       self.index = kwargs['index']
 
-   def codeGenerate(self,builder,var_symbolTBL):
+   def codeGenerate(self,builder,var_ptr_symbolTBL):
       return builder.extract_value(self.IDENT, self.index)
 
 class BinaryAST(MiniCBaseAST):
