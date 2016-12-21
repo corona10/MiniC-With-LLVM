@@ -1,14 +1,13 @@
-int x = 4;
-int y[10];
-void foo(int n) {
+int foo(int n) {
+  int k;
   n = n + 1;
-  return;
+  n = n - 1;
+  k = n * 2;
+  return n + k;
 }
 int main()
 {
    int x;
-   int y = 3;
-   int z[100];
    x = 5;
    foo(x);
    return 0;
