@@ -23,6 +23,7 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#program.
     def exitProgram(self, ctx):
+        print self.function_symbol_table
         programAst = ProgramAST()
         for child in ctx.getChildren():
             child_ast = self.prop[child]
@@ -224,6 +225,8 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#local_decl.
     def exitLocal_decl(self, ctx):
+        function_name = self.function_name_table[ctx];
+        function_symbol = self.function_symbol_table[function_name]
         if ctx.getChildCount() == 3:
             ty = self.prop[ctx.getChild(0)]
             name = ctx.getChild(1).getText()
@@ -239,6 +242,7 @@ class MiniCListener(ParseTreeListener):
             size = int(ctx.getChild(3).getText())
             ast = LocalDeclAST(type = ty, name= name, is_array= True, size = size)
         self.prop[ctx] = ast
+        self.function_symbol_table[name] = ast
 
 
     # Enter a parse tree produced by MiniCParser#if_stmt.
