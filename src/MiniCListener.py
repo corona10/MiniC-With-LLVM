@@ -331,7 +331,7 @@ class MiniCListener(ParseTreeListener):
                         ast = ArrayAST(IDENT=IDENT,expr=expr) 
                 else:
                     expr=self.prop[ctx.expr(0)]
-		    ast = ArrayAST(IDENT,expr) 
+		    ast = ArrayAST(IDENT=IDENT,expr=expr) 
             else:
                 #IDENT[expr] = expr
                 IDENT = ctx.getChild(0).getText()

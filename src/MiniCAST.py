@@ -206,14 +206,6 @@ class FunctionCallAST(MiniCBaseAST):
           args.append(arg.codeGenerate(builder, var_symbolTBL))
       return builder.call(function_set[self.IDENT], tuple(args))
 
-class ArrayAST(MiniCBaseAST):
-
-   def __init__(self, **kwargs):
-      self.IDENT = kwargs['IDENT']
-      self.index = kwargs['index']
-
-   def codeGenerate(self,builder,var_symbolTBL):
-      return builder.extract_value(self.IDENT, self.index)
 
 class BinaryAST(MiniCBaseAST):
 
@@ -287,7 +279,9 @@ class ArrayAST(MiniCBaseAST):
    def codeGenerate(self, builder, var_ptr_symbolTBL):
       s1_ptr = var_ptr_symbolTBL[self.IDENT]
       idx = self.expr.codeGenerate(builder,var_ptr_symbolTBL)
-      return builder.load(IRBuilder.gep(s1_ptr, self.expr, inbounds=False, name=self.IDENT))
+      bgep = builder.gep(s1_ptr, [ll.Constant(ll.IntType(32),0),idx], inbounds=False)
+      return builder.load(bgep)
+      #return builder.extract_value(s1_ptr,self.expr.value)
 
 class ArrayAssignAST(MiniCBaseAST):
 
