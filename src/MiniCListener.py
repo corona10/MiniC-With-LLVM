@@ -14,6 +14,7 @@ class MiniCListener(ParseTreeListener):
         self.prop={}
         self.function_name_table = {}
         self.function_symbol_table = {}
+        self.symbolTBL = {}
 
         self.tm = llvm.Target.from_default_triple().create_target_machine()
 
@@ -29,7 +30,7 @@ class MiniCListener(ParseTreeListener):
             child_ast = self.prop[child]
             print child_ast
             programAst.asts.append(child_ast) 
-        strmod = programAst.codeGenerate()
+        strmod = programAst.codeGenerate(self.symbolTBL)
         print "=== Generated IR code ===\n"
         print strmod
         llmod = llvm.parse_assembly(strmod)
@@ -283,10 +284,8 @@ class MiniCListener(ParseTreeListener):
             if ctx.getChildCount() == 1:
                 if ctx.getChild(0) == ctx.LITERAL():
                    ast=ctx.getChild(0).getText()
-                   print 'LITERAL!'
                 elif ctx.getChild(0) == ctx.IDENT():
                    ast=ctx.getChild(0).getText()
-                   print 'IDENT!'
             elif ctx.getChildCount() == 2:
                 op = ctx.getChild(0).getText()
                 s1=self.prop[ctx.expr(0)]
@@ -295,27 +294,17 @@ class MiniCListener(ParseTreeListener):
                 if ctx.getChild(0).getText() == "(":
                     expr=self.prop[ctx.expr(0)]
                     ast = expr
-                    #print expr
                 elif ctx.getChild(1).getText() == "=":
                     s1=ctx.getChild(0).getText()
                     op=ctx.getChild(1).getText()
                     s2 =self.prop[ctx.expr(0)]
-                    kwargs={}
-                    kwargs['s1'] = s1
-                    kwargs['op'] = op
-                    kwargs['s2'] = s2
-                    ast = AssignAST(kwargs)
+                    ast = AssignAST(s1=s1,op=op,s2=s2)
                     print ast, "@@@"
                 else: #Binary
                     s1 = self.prop[ctx.expr(0)]
                     op = ctx.getChild(1).getText()
                     s2 = self.prop[ctx.expr(1)]
-                    kwargs={}
-                    kwargs['s1'] = s1
-                    kwargs['op'] = op
-                    kwargs['s2'] = s2
-                    #ast = BinaryAST(s1=s1,op=op,s2=s2)
-                    ast = BinaryAST(kwargs)
+                    ast = BinaryAST(s1=s1,op=op,s2=s2)
                                  
             elif ctx.getChildCount() == 4:
                 #IDNET(args) or IDENT[args]
@@ -326,12 +315,10 @@ class MiniCListener(ParseTreeListener):
                     if f == "(":
                         #print ctx.args().getText()
                         args=self.prop[ctx.args()]
-                        kwargs['IDENT']=IDENT
-                        kwargs['args']=args
-                        ast = FunctionCallAST(kwargs) 
+                        ast = FunctionCallAST(IDENT=IDENT, args=args) 
                     if f == "[":
                         expr = self.prop[ctx.args()]
-                        ast = ArrayAST(IDENT,expr) 
+                        ast = ArrayAST(IDENT=IDENT,expr=expr) 
                 else:
                     expr=self.prop[ctx.expr(0)]
 		    ast = ArrayAST(IDENT,expr) 
