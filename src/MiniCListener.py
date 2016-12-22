@@ -1,6 +1,7 @@
 # Generated from MiniC.g4 by ANTLR 4.5.1
 from antlr4 import *
 from ctypes import CFUNCTYPE, c_int, POINTER
+import copy
 import sys
 import llvmlite.ir as ll
 import llvmlite.binding as llvm
@@ -39,6 +40,25 @@ class MiniCListener(ParseTreeListener):
             f.write(strmod)
  
         llmod = llvm.parse_assembly(strmod)
+        answer = raw_input('* Optimizing this code? y/n')
+        if answer.lower() == "y":
+            opt = True
+        else:
+            opt = False
+
+        if opt:
+            pm = llvm.create_module_pass_manager()
+            pmb = llvm.create_pass_manager_builder()
+            pmb.opt_level = 3  # -O3
+            pmb.populate(pm)
+            # optimize
+            pm.run(llmod)
+            print "=== Generated optimized IR code ===\n"
+            print llmod
+            with open("output_opt.ll", 'w') as f:
+                f.write(str(llmod))
+
+
         llmod.verify()
         with llvm.create_mcjit_compiler(llmod, self.tm) as ee:
             ee.finalize_object()
