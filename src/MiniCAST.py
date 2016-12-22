@@ -4,6 +4,7 @@ import llvmlite.binding as llvm
 
 function_set = {}
 is_args_array = {}
+cfg_list = []
 whileNum=0
 
 def int32(value):
@@ -95,8 +96,7 @@ class FunctionAST(MiniCBaseAST):
       function_set[self.name] = function
       self.compound_stmt.function = function
       self.compound_stmt.codeGenerate(builder,var_ptr_symbolTBL)
-      dot = llvm.get_function_cfg(function)
-      llvm.view_dot_graph(dot ,filename=self.name,view = True)
+      cfg_list.append(function)
       return module
 
    def pushAST(self, ast):
@@ -200,7 +200,7 @@ class ProgramAST(MiniCBaseAST):
       module.triple = llvm.get_default_triple()
       for ast in self.asts:
          module = ast.codeGenerate(module, var_ptr_symbolTBL)
-      return module;
+      return module, cfg_list;
 
 class AssignAST(MiniCBaseAST):
    def __init__(self, **kwargs):
