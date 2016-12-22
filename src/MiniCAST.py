@@ -3,8 +3,6 @@ import llvmlite.ir as ll
 import llvmlite.binding as llvm
 
 function_set = {}
-is_args_array = {}
-whileNum=0
 
 def int32(value):
    return ll.Constant(ll.IntType(32),value)
@@ -155,7 +153,6 @@ class CompoundAST(MiniCBaseAST):
          for idx in range(len(self.function.args)):
             if type(func.ftype.args[idx]) == llvmlite.ir.types.PointerType:
                origin_load = self.function.args[idx]
-               is_args_array[self.function.args[idx].name] = True
                ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
                builder.store(origin_load,ptr)
                var_ptr_symbolTBL[self.function.args[idx].name] = ptr
