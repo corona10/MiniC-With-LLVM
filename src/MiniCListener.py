@@ -159,19 +159,6 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#stmt.
     def exitStmt(self, ctx):
-        #stmt = ""
-        #if ctx.getChildCount > 0:
-        #    if ctx.expr_stmt() is not None:
-        #       print ctx.expr_stmt().getText()
-        #       ast = self.prop[ctx.expr_stmt()]
-        #    elif ctx.compound_stmt() is not None:
-        #        ast = self.prop[ctx.compound_stmt()]
-        #    elif ctx.if_stmt() is not None:
-        #        stmt += self.prop[ctx.if_stmt()]
-        #    elif ctx.while_stmt() is not None:
-        #        stmt += self.prop[ctx.while_stmt()]
-        #    else:
-        #        ast = self.prop[ctx.return_stmt()]
         
         if ctx.getChild(0) in self.prop:
            ast = self.prop[ctx.getChild(0)]
@@ -234,7 +221,6 @@ class MiniCListener(ParseTreeListener):
         self.prop[ctx] = compoundAST
         for stmt in ctx.getChildren():
            if stmt in self.prop:
-              #print stmt.getText()
               compoundAST.pushAST(self.prop[stmt])
         size = ctx.getChildCount()
         ast = self.prop[ctx.getChild(size-2)]

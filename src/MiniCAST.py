@@ -3,6 +3,7 @@ import llvmlite.ir as ll
 import llvmlite.binding as llvm
 
 function_set = {}
+is_args_array = {}
 whileNum=0
 
 def int32(value):
@@ -154,8 +155,10 @@ class CompoundAST(MiniCBaseAST):
          for idx in range(len(self.function.args)):
             if type(func.ftype.args[idx]) == llvmlite.ir.types.PointerType:
                origin_load = self.function.args[idx]
-               #var_is_args_array[self.function.args[idx].name] = True
-               var_ptr_symbolTBL[self.function.args[idx].name] = origin_load
+               is_args_array[self.function.args[idx].name] = True
+               ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
+               builder.store(origin_load,ptr)
+               var_ptr_symbolTBL[self.function.args[idx].name] = ptr
             else:
                origin_load = self.function.args[idx]
                ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
@@ -181,7 +184,6 @@ class ReturnAST(MiniCBaseAST):
       if self.value == None:
          builder.ret_void()
       else:
-         #const_1 = ll.Constant(ll.IntType(32),0);
          if super(type(self.value)) ==  MiniCBaseAST:
              load = self.value.codeGenerate(builder,var_ptr_symbolTBL)
          else:
@@ -299,9 +301,8 @@ class ArrayAST(MiniCBaseAST):
    def codeGenerate(self, builder, var_ptr_symbolTBL):
       s1_ptr = var_ptr_symbolTBL[self.IDENT]
       idx = self.expr.codeGenerate(builder,var_ptr_symbolTBL)
-      bgep = builder.gep(s1_ptr, [ll.Constant(ll.IntType(32),0),idx], inbounds=False)
+      bgep = builder.gep(s1_ptr, [ll.Constant(ll.IntType(32),0),idx], inbounds=True)
       return builder.load(bgep)
-      #return builder.extract_value(s1_ptr,self.expr.value)
 
 class ArrayAssignAST(MiniCBaseAST):
 
@@ -314,7 +315,7 @@ class ArrayAssignAST(MiniCBaseAST):
       s1_ptr = var_ptr_symbolTBL[self.IDENT]
       s1_load = self.value.codeGenerate(builder,var_ptr_symbolTBL)
       idx = self.idx.codeGenerate(builder,var_ptr_symbolTBL)
-      bgep = builder.gep(s1_ptr, [ll.Constant(ll.IntType(32),0),idx], inbounds=False)
+      bgep = builder.gep(s1_ptr, [ll.Constant(ll.IntType(32),0),idx], inbounds=True)
       builder.store(s1_load, bgep)
 
 
