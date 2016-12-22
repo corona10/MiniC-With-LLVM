@@ -201,6 +201,19 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#while_stmt.
     def exitWhile_stmt(self, ctx):
+        func_name = self.function_name_table[ctx]
+        cond = self.prop[ctx.getChild(2)]
+        stmt = self.prop[ctx.getChild(4).getChild(0).getChild(1)]
+        ast = WhileAST(function_name = func_name , cond=cond, stmt=stmt)
+        self.prop[ctx] = ast
+
+
+    # Enter a parse tree produced by MiniCParser#return_stmt.
+    def enterReturn_stmt(self, ctx):
+        func_name = self.function_name_table[ctx]
+        if ctx.getChildCount() > 0:
+            for pt in ctx.children:
+                self.function_name_table[pt] = func_name
         pass
 
 

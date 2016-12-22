@@ -2,6 +2,7 @@ import llvmlite.ir as ll
 import llvmlite.binding as llvm
 
 function_set = {}
+whileNum=0
 
 def int32(value):
    return ll.Constant(ll.IntType(32),value)
@@ -325,3 +326,31 @@ class IfAST(MiniCBaseAST):
                 with otherwise:
                     self.else_stmt.function = func  
                     self.else_stmt.codeGenerate(builder,var_ptr_symbolTBL)
+
+
+class WhileAST(MiniCBaseAST):
+   
+   def __init__(self, **kwargs):
+      self.cond = kwargs['cond']
+      self.stmt = kwargs['stmt']
+      self.func_name = kwargs['function_name']
+
+   def codeGenerate(self, builder, var_ptr_symbolTBL):
+       func = function_set[self.func_name]
+       self.stmt.function = func
+
+       loophead = builder.append_basic_block('loop.header')
+       loopbody = builder.append_basic_block('loop.body')
+       loopend = builder.append_basic_block('loop.end')
+
+       builder.branch(loophead)
+       builder.position_at_end(loophead)
+
+       cond = self.cond.codeGenerate(builder, var_ptr_symbolTBL)
+       builder.cbranch(cond, loopbody, loopend)
+
+       builder.position_at_end(loopbody)
+       self.stmt.codeGenerate(builder,var_ptr_symbolTBL)
+       builder.branch(loophead)
+
+       builder.position_at_end(loopend)

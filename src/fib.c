@@ -16,10 +16,8 @@ int main()
    t[3] = 2;
    x = t[3];
    y = 1;
-   if( y < 4){
-      y = 3;
-   }else{
-      y = 4;
+   while(x>0){
+     x=x-1;
    }
 
    return 0;
