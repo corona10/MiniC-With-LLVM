@@ -32,7 +32,7 @@ class MiniCListener(ParseTreeListener):
         for child in ctx.getChildren():
             child_ast = self.prop[child]
             programAst.asts.append(child_ast) 
-        mod  = programAst.codeGenerate(self.var_ptr_symbolTBL)
+        mod, cfg_list  = programAst.codeGenerate(self.var_ptr_symbolTBL)
         strmod = str(mod)
         print "=== Generated IR code ===\n"
         print strmod
@@ -40,7 +40,7 @@ class MiniCListener(ParseTreeListener):
             f.write(strmod)
  
         llmod = llvm.parse_assembly(strmod)
-        answer = raw_input('* Optimizing this code? y/n')
+        answer = raw_input('* Optimizing this code? (y/n): ')
         if answer.lower() == "y":
             opt = True
         else:
@@ -66,6 +66,11 @@ class MiniCListener(ParseTreeListener):
             print(self.tm.emit_assembly(llmod))
             with open("output.asm", 'w') as f:
                 f.write(self.tm.emit_assembly(llmod))
+        answer = raw_input('Do you want to create CFG Graph? (y/n) : ')
+        if answer.lower() == 'y': 
+            for cfg in cfg_list:
+                dot = llvm.get_function_cfg(cfg)
+                llvm.view_dot_graph(dot ,filename=cfg.name,view = True)
 
     # Enter a parse tree produced by MiniCParser#decl.
     def enterDecl(self, ctx):
