@@ -11,5 +11,5 @@ int main()
   int k = 10;
   int n;
   n = fibo(k);
-  return k;
+  return n;
 }
