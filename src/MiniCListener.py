@@ -406,8 +406,6 @@ class MiniCListener(ParseTreeListener):
                     args.append(self.prop[ctx.expr(i/2)])
                 else:
                     continue
-                    #args+=ctx.getChild(i).getText()
-                    #args+=" "
         self.prop[ctx]=args
         pass
 
