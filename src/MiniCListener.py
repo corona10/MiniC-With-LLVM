@@ -130,7 +130,7 @@ class MiniCListener(ParseTreeListener):
             ast = ParamsAST()
             for i in range(ctx.getChildCount()):
                 if (i+1) % 2 != 0:
-                    paramAST = self.prop[ctx.getChild(i-1)]
+                    paramAST = self.prop[ctx.getChild(i)]
                     ast.param_asts.append(paramAST)
             self.prop[ctx] = ast
 
@@ -142,7 +142,10 @@ class MiniCListener(ParseTreeListener):
     def exitParam(self, ctx):
         param_type = ctx.getChild(0).getText()
         param_name = ctx.getChild(1).getText()
-        ast = ParamAST(type=param_type, name = param_name)
+        if ctx.getChildCount() == 2:
+           ast = ParamAST(type=param_type, name = param_name)
+        else:
+           ast = ParamAST(type=param_type, name = param_name, is_array=True)
         self.add_var(param_name,ast)
         self.prop[ctx] = ast
 
@@ -226,7 +229,8 @@ class MiniCListener(ParseTreeListener):
 
     # Exit a parse tree produced by MiniCParser#compound_stmt.
     def exitCompound_stmt(self, ctx):
-        compoundAST = CompoundAST(name="entry")
+        func_name = self.function_name_table[ctx]
+        compoundAST = CompoundAST(name="entry", function_name = func_name)
         self.prop[ctx] = compoundAST
         for stmt in ctx.getChildren():
            if stmt in self.prop:

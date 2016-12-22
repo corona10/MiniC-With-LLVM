@@ -87,11 +87,11 @@ class FunctionAST(MiniCBaseAST):
       ftype = ll.FunctionType(rtn_type, self.args_types)
       function = ll.Function(module, ftype, self.name)
       builder = ll.IRBuilder(function.append_basic_block(self.name))
-      function_set[self.name] = function
       if self.args_names is not None:
          for idx in range(len(self.args_names)):
             function.args[idx].name = self.args_names[idx]
             function.args[idx].type = self.args_types[idx]
+      function_set[self.name] = function
       self.compound_stmt.function = function
       self.compound_stmt.codeGenerate(builder,var_ptr_symbolTBL)
       #dot = llvm.get_function_cfg(function)
@@ -123,8 +123,13 @@ class ParamAST(MiniCBaseAST):
          self.is_array = kwargs['is_array']
 
    def codeGenerate(self):
-      if self.param_type == 'int':
-         return ll.IntType(32), self.name
+      if self.is_array == False:
+         if self.param_type == 'int':
+            return ll.IntType(32), self.name
+      else:
+         if self.param_type == 'int':
+            return ll.PointerType(ll.IntType(32)), self.name
+      
 
 class TypeSpecAST(MiniCBaseAST):
    def __init__(self, **kwargs):
@@ -138,17 +143,24 @@ class TypeSpecAST(MiniCBaseAST):
 
 class CompoundAST(MiniCBaseAST):
    def __init__(self, **kwargs):
+      self.function_name = kwargs['function_name']
       self.name = kwargs['name']
       self.ast_list = []
       self.hasRet = False
 
    def codeGenerate(self,builder,var_ptr_symbolTBL):
+      func =  function_set[self.function_name]
       if self.function.args is not None:
          for idx in range(len(self.function.args)):
-            origin_load = self.function.args[idx]
-            ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
-            builder.store(origin_load,ptr)
-            var_ptr_symbolTBL[self.function.args[idx].name] = ptr
+            if type(func.ftype.args[idx]) == llvmlite.ir.types.PointerType:
+               origin_load = self.function.args[idx]
+               #var_is_args_array[self.function.args[idx].name] = True
+               var_ptr_symbolTBL[self.function.args[idx].name] = origin_load
+            else:
+               origin_load = self.function.args[idx]
+               ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
+               builder.store(origin_load,ptr)
+               var_ptr_symbolTBL[self.function.args[idx].name] = ptr
       for ast in self.ast_list:
          ast.codeGenerate(builder,var_ptr_symbolTBL)
 
@@ -198,7 +210,6 @@ class AssignAST(MiniCBaseAST):
       if self.op == "=":
          s2_load = self.s2.codeGenerate(builder,var_ptr_symbolTBL)
          s1_ptr = var_ptr_symbolTBL[self.s1]
-         print s1_ptr
          A =  builder.store(s2_load,s1_ptr) 
 
 class FunctionCallAST(MiniCBaseAST):
@@ -275,7 +286,6 @@ class IdentAST(MiniCBaseAST):
       self.value = kwargs['value']
 
    def codeGenerate(self, builder,var_ptr_symbolTBL):
-      print (type(var_ptr_symbolTBL[self.value]))
       if type(var_ptr_symbolTBL[self.value]) == llvmlite.ir.values.Argument:
          return var_ptr_symbolTBL[self.value]
       return builder.load(var_ptr_symbolTBL[self.value])
