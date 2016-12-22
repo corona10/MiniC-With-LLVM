@@ -204,7 +204,6 @@ class MiniCListener(ParseTreeListener):
         if ctx.getChildCount() == 2 :
            ast = self.prop[ctx.expr()]
            self.prop[ctx]=ast
-        pass
 
 
     # Enter a parse tree produced by MiniCParser#while_stmt.
@@ -229,8 +228,6 @@ class MiniCListener(ParseTreeListener):
         if ctx.getChildCount() > 0:
             for pt in ctx.children:
                 self.function_name_table[pt] = func_name
-        pass
-
 
     # Enter a parse tree produced by MiniCParser#compound_stmt.
     def enterCompound_stmt(self, ctx):
@@ -407,5 +404,4 @@ class MiniCListener(ParseTreeListener):
                 else:
                     continue
         self.prop[ctx]=args
-        pass
 
