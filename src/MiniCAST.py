@@ -1,3 +1,4 @@
+import llvmlite
 import llvmlite.ir as ll
 import llvmlite.binding as llvm
 
@@ -144,7 +145,7 @@ class CompoundAST(MiniCBaseAST):
    def codeGenerate(self,builder,var_ptr_symbolTBL):
       if self.function.args is not None:
          for idx in range(len(self.function.args)):
-            ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
+            ptr = self.function.args[idx]
             var_ptr_symbolTBL[self.function.args[idx].name] = ptr
       for ast in self.ast_list:
          ast.codeGenerate(builder,var_ptr_symbolTBL)
@@ -271,6 +272,9 @@ class IdentAST(MiniCBaseAST):
       self.value = kwargs['value']
 
    def codeGenerate(self, builder,var_ptr_symbolTBL):
+      print (type(var_ptr_symbolTBL[self.value]))
+      if type(var_ptr_symbolTBL[self.value]) == llvmlite.ir.values.Argument:
+         return var_ptr_symbolTBL[self.value]
       return builder.load(var_ptr_symbolTBL[self.value])
 
 
