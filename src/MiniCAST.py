@@ -145,7 +145,9 @@ class CompoundAST(MiniCBaseAST):
    def codeGenerate(self,builder,var_ptr_symbolTBL):
       if self.function.args is not None:
          for idx in range(len(self.function.args)):
-            ptr = self.function.args[idx]
+            origin_load = self.function.args[idx]
+            ptr = builder.alloca(self.function.args[idx].type,name=self.function.args[idx].name)
+            builder.store(origin_load,ptr)
             var_ptr_symbolTBL[self.function.args[idx].name] = ptr
       for ast in self.ast_list:
          ast.codeGenerate(builder,var_ptr_symbolTBL)
@@ -196,6 +198,7 @@ class AssignAST(MiniCBaseAST):
       if self.op == "=":
          s2_load = self.s2.codeGenerate(builder,var_ptr_symbolTBL)
          s1_ptr = var_ptr_symbolTBL[self.s1]
+         print s1_ptr
          A =  builder.store(s2_load,s1_ptr) 
 
 class FunctionCallAST(MiniCBaseAST):
