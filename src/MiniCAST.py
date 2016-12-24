@@ -94,11 +94,13 @@ class FunctionAST(MiniCBaseAST):
       function_set[self.name] = function
       self.compound_stmt.function = function
       self.compound_stmt.codeGenerate(builder,var_ptr_symbolTBL)
+      for bb in self.bb_lists:
+         bb.codeGenerate(builder, var_ptr_symbolTBL)
       cfg_list.append(function)
       return module
 
    def pushAST(self, ast):
-      ast.codeGenerate()
+      self.bb_lists.append(ast)
 
 class ParamsAST(MiniCBaseAST):
    def __init__(self):
