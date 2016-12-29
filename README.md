@@ -1,8 +1,7 @@
 # MiniC With LLVM
 A compiler term project for item03  as CompilerCS302 of Chungnam National University.
 
-We made a Mini C compiler which works with LLVM Lite for back end and antlr for front end.
-This comiler generates LLVM IR Codes, assembly codes for target machine and CFG Graph.
+We made a Mini C compiler which works with LLVM Lite for a backend and Antlr for a frontend. This compiler generates LLVM IR Codes, assembly codes for target machine and CFG Graph.
 
 ## Pre-install
 We tesed on Ubuntu 16.04 and python2.
