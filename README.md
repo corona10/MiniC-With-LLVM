@@ -2,7 +2,7 @@
 Compiler term project for CompilerCS302 of Chungnam National University.
 
 We made a Mini C compiler which works with LLVM Lite for back end and antlr for front end.
-This comiler generates LLVM IR Codes, assembly codes for target machine. and CFG Graph.
+This comiler generates LLVM IR Codes, assembly codes for target machine and CFG Graph.
 
 ## Pre-install
 We tesed on Ubuntu 16.04 and python2.
