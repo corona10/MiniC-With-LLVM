@@ -1,5 +1,5 @@
-# MiniCWithLLVM
-Compiler term project for CompilerCS302 of Chungnam National University.
+# MiniC With LLVM
+A compiler term project for item03  as CompilerCS302 of Chungnam National University.
 
 We made a Mini C compiler which works with LLVM Lite for back end and antlr for front end.
 This comiler generates LLVM IR Codes, assembly codes for target machine and CFG Graph.
